@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDownloadChallanMutation, useUploadChallanMutation } from "../../api/apiSlice";
 import { toast } from "react-toastify";
-import { DollarSign, Calendar, Upload, Download, CheckCircle, Clock, FileText } from "lucide-react";
+import { DollarSign, Calendar, Upload, Download, CheckCircle, Clock, FileText, User, BookOpen } from "lucide-react";
 
 const FeesComponent = () => {
   const studentData = useSelector((state) => state.auth.user);
@@ -11,23 +11,41 @@ const FeesComponent = () => {
   const [downloadChallan, { isLoading: isDownloading }] = useDownloadChallanMutation();
   const fileInputRefs = useRef({});
 
-  if (!studentData || !studentData.fees?.length) return null;
+  if (!studentData) return null;
 
-  const installments = studentData.fees.flatMap(fee =>
-    fee.installments.map(inst => ({
+  // Extract installments from fees array
+  const installments = studentData.fees?.flatMap(fee =>
+    fee.installments?.map(inst => ({
       ...inst,
       total_fee: fee.total_fee,
       fee_note: fee.note,
       batch_name: fee.batch_name || studentData.batch_name,
       course_name: studentData.course_name,
       teacher_name: studentData.teacher_name,
-    }))
-  );
+    })) || []
+  ) || [];
+
+  if (installments.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-700 mb-2">No Fee Information Available</h2>
+            <p className="text-gray-500">There are no fee installments to display at this time.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const firstUnpaidIndex = installments.findIndex(inst => inst.status === "pending");
 
   const handleFileChange = (e, installmentUuid) => {
-    setSelectedFiles(prev => ({ ...prev, [installmentUuid]: e.target.files[0] }));
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFiles(prev => ({ ...prev, [installmentUuid]: file }));
+    }
   };
 
   const handleUpload = async (installment) => {
@@ -43,7 +61,7 @@ const FeesComponent = () => {
 
     try {
       const result = await uploadChallan({
-        path: `/user/fees/installments/${installment.installment_uuid}/upload-paid-challan?method=PATCH`,
+        path: `/user/fees/installments/${installment.installment_uuid}/upload-paid-challan`,
         formData: formData,
       }).unwrap();
 
@@ -77,6 +95,10 @@ const FeesComponent = () => {
   const totalFeeAmount = installments[0]?.total_fee || "0.00";
   const paidInstallments = installments.filter(inst => inst.status === "paid").length;
   const totalInstallments = installments.length;
+  const totalPaidAmount = installments
+    .filter(inst => inst.status === "paid")
+    .reduce((sum, inst) => sum + parseFloat(inst.amount.replace(/,/g, '')), 0)
+    .toLocaleString();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-4 md:p-8">
@@ -84,9 +106,16 @@ const FeesComponent = () => {
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-[#014376] mb-2">Fee Management</h1>
-          <p className="text-gray-600">
-            {studentData.first_name} {studentData.last_name} - {studentData.course_name}
-          </p>
+          <div className="flex flex-wrap items-center gap-4 text-gray-600">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span>{studentData.first_name} {studentData.last_name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              <span>{studentData.course_name}</span>
+            </div>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -120,9 +149,9 @@ const FeesComponent = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-amber-500 transform transition-all hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium mb-1">Status</p>
+                <p className="text-gray-600 text-sm font-medium mb-1">Amount Paid</p>
                 <p className="text-2xl font-bold text-amber-600">
-                  {paidInstallments === totalInstallments ? "Completed" : "In Progress"}
+                  Rs. {totalPaidAmount}
                 </p>
               </div>
               <div className="bg-amber-100 p-4 rounded-full">
@@ -157,7 +186,7 @@ const FeesComponent = () => {
                   }`}
                 >
                   {/* Status Badge */}
-                  {/* <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4">
                     <span
                       className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
                         isPaid
@@ -169,7 +198,7 @@ const FeesComponent = () => {
                     >
                       {isPaid ? "PAID" : isActive ? "PENDING" : "LOCKED"}
                     </span>
-                  </div> */}
+                  </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Installment Details */}
@@ -180,7 +209,7 @@ const FeesComponent = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex items-start gap-3">
-                          <DollarSign className="w-5 h-5 text-[#31918D] mt-0.5" />
+                          <DollarSign className="w-5 h-5 text-[#31918D] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-gray-600">Amount</p>
                             <p className="font-semibold text-gray-900">Rs. {inst.amount}</p>
@@ -188,32 +217,48 @@ const FeesComponent = () => {
                         </div>
 
                         <div className="flex items-start gap-3">
-                          <Calendar className="w-5 h-5 text-[#31918D] mt-0.5" />
+                          <Calendar className="w-5 h-5 text-[#31918D] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-gray-600">Due Date</p>
                             <p className="font-semibold text-gray-900">
-                              {new Date(inst.due_date).toLocaleDateString()}
+                              {new Date(inst.due_date).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
                             </p>
                           </div>
                         </div>
 
                         {inst.paid_date && (
                           <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                             <div>
                               <p className="text-sm text-gray-600">Paid Date</p>
                               <p className="font-semibold text-gray-900">
-                                {new Date(inst.paid_date).toLocaleDateString()}
+                                {new Date(inst.paid_date).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })}
                               </p>
                             </div>
                           </div>
                         )}
                       </div>
 
+                      {inst.note && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-semibold">Note:</span> {inst.note}
+                          </p>
+                        </div>
+                      )}
+
                       {inst.fee_note && (
                         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                           <p className="text-sm text-gray-700">
-                            <span className="font-semibold">Note:</span> {inst.fee_note}
+                            <span className="font-semibold">Fee Note:</span> {inst.fee_note}
                           </p>
                         </div>
                       )}
@@ -230,10 +275,10 @@ const FeesComponent = () => {
                         onChange={(e) => handleFileChange(e, inst.installment_uuid)}
                       />
 
-                      {/* Upload Button */}
+                      {/* Upload Button - Only active for first unpaid installment */}
                       <button
                         disabled={!isActive || isLoading || isPaid}
-                        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 w-full lg:w-auto ${
                           isActive && !isPaid
                             ? "bg-[#014376] hover:bg-[#013057] text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -252,7 +297,7 @@ const FeesComponent = () => {
                       {hasSelectedFile && (
                         <button
                           disabled={isLoading}
-                          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-[#31918D] hover:bg-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-[#31918D] hover:bg-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed w-full lg:w-auto"
                           onClick={() => handleUpload(inst)}
                         >
                           <CheckCircle className="w-5 h-5" />
@@ -260,10 +305,10 @@ const FeesComponent = () => {
                         </button>
                       )}
 
-                      {/* Download Button */}
+                      {/* Download Button - Always available */}
                       <button
                         disabled={isDownloading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-[#014376] to-[#31918D] hover:from-[#013057] hover:to-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-[#014376] to-[#31918D] hover:from-[#013057] hover:to-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed w-full lg:w-auto"
                         onClick={() => handleDownload(inst, index)}
                       >
                         <Download className="w-5 h-5" />
@@ -271,9 +316,11 @@ const FeesComponent = () => {
                       </button>
 
                       {hasSelectedFile && (
-                        <p className="text-xs text-center text-gray-600 mt-1">
-                          📎 {selectedFiles[inst.installment_uuid]?.name}
-                        </p>
+                        <div className="text-xs text-center lg:text-right text-gray-600 mt-1 max-w-full">
+                          <p className="truncate" title={selectedFiles[inst.installment_uuid]?.name}>
+                            📎 {selectedFiles[inst.installment_uuid]?.name}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -284,8 +331,11 @@ const FeesComponent = () => {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Only the first pending installment can be uploaded at a time.</p>
+        <div className="mt-6 p-4 bg-blue-50 rounded-xl text-center">
+          <p className="text-sm text-gray-700">
+            <strong>Note:</strong> Only the first pending installment can be uploaded at a time. 
+            Complete the current installment to unlock the next one.
+          </p>
         </div>
       </div>
     </div>
