@@ -3,7 +3,7 @@ import "jspdf-autotable";
 import { BookOpen, School, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useGetQuery, usePostMutation } from "../../../api/apiSlice";
+import {  useGetQuery, usePostMutation } from "../../../api/apiSlice";
 import FormInput from "../../ui/FormInput";
 import Loader from "../../ui/common/LoaderComponent";
 import { toast } from "react-toastify";
@@ -15,6 +15,7 @@ const StudentForm = () => {
   const training_id = location.state?.enrollmentId || null;
   console.log("Inquiry Data:", inquiryData, "Training ID:", training_id);
   const [createStudent, { isLoading, isSuccess, isError }] = usePostMutation();
+  const [createChallan, { isLoading: challanLoading }] = useCreateChallanMutation();
   const { data: classData } = useGetQuery({ path: "admin/classes" });
   const genderOptions = [
     { label: "Male", value: "Male" },
@@ -40,7 +41,7 @@ const StudentForm = () => {
     first_name: inquiryData?.first_name || "",
     last_name: inquiryData?.last_name || "",
     email: inquiryData?.email || "",
-    password: inquiryData?.cnic || "",
+    // password: inquiryData?.cnic || "",
     cnic: inquiryData?.cnic || "",
     contact: inquiryData?.phone || "",
     guardianName: inquiryData?.guardian_name || "",
@@ -72,16 +73,39 @@ const StudentForm = () => {
     active_status: "1",
   });
 
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      password: prev.cnic,
-    }));
-  }, [formData.cnic]);
+  // useEffect(() => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     password: prev.cnic,
+  //   }));
+  // }, [formData.cnic]);
+
+ const downloadChallan = (blob) => {
+  try {
+    if (!(blob instanceof Blob)) {
+      throw new Error("Invalid response: Expected a Blob");
+    }
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Challan_${formData.first_name}_${formData.last_name}_${new Date().getTime()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error("Error downloading challan:", error);
+    toast.error("Failed to download challan");
+  }
+};
 const handleChange = (e) => {
   const { name, value, files } = e.target;
   let processedValue = value;
-  
+  aa
   if (name === "laptopProvided") {
     processedValue = value === "true" || value === true;
   }
@@ -129,7 +153,7 @@ const handleChange = (e) => {
         guardianPhone: "guardianPhone",
         cnic: "cnic",
         email: "email",
-        password: "password",
+        // password: "password",
         city: "city",
         institute: "institute",
         occupation: "occupation",
@@ -376,23 +400,44 @@ const handleChange = (e) => {
     URL.revokeObjectURL(url);
   };
 
-  const handleChallanSubmit = (e) => {
-    e.preventDefault();
-    if (!challanData.totalFee || challanData.totalFee <= 0) {
-      alert("Please enter a valid total fee.");
-      return;
-    }
-    const student = {
-      name: `${formData.first_name} ${formData.last_name}`,
-      courseName: formData.courseName,
-      id: studentId || "TEMP_ID",
+const handleChallanSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!challanData.totalFee || challanData.totalFee <= 0) {
+    toast.error("Please enter a valid total fee.");
+    return;
+  }
+
+  try {
+    const payload = {
+      user_id: studentId,
+      course_id: formData.courseId,
+      total_fee: Number(challanData.totalFee),
+      discount: Number(challanData.discount),
+      laptop_fee: Number(challanData.laptopFee),
+      installments: Number(challanData.installments),
+      note: challanData.note,
     };
-    generateChallanPDF(student, challanData);
+
+    // Use fetch or configure the mutation to handle blob response
+    const response = await createChallan({
+      path: "/admin/challan/create",
+      body: payload,
+      responseType: "blob", // Ensure the response is treated as a blob
+    }).unwrap();
+
+    // Pass the blob directly to downloadChallan
+    downloadChallan(response);
+
+    toast.success("Challan generated and downloaded successfully!");
     setShowChallanForm(false);
     setShowChallanPrompt(false);
     navigate("/dashboard/students");
-  };
-
+  } catch (error) {
+    console.error("Error generating challan:", error);
+    toast.error(error?.data?.message || "Failed to generate challan");
+  }
+};
   return (
     <div className="min-h-screen p-4 overflow-hidden">
       {isLoading && <Loader />}

@@ -57,99 +57,61 @@ const SidebarComponent = () => {
 
   const menuItems = [
     {
-      label: "Admin Panel",
+      label: "Dashboard",
       icon: <LayoutDashboard />,
-      expandable: true,
+      route: DASHBOARD,
     },
-    {
-      route: STUDENTS,
-      label: "Students",
-      icon: <GraduationCap />,
-      expandable: true,
-    },
-    {
-      label: "Startups/Working Spaces",
-      icon: <Building />,
-      expandable: true,
-    },
-    {
-      label: "Courses/Training",
-      icon: <BookOpen />,
-      expandable: true,
-    },
-    {
-      label: "Employees",
-      icon: <BanknoteArrowDown />,
-      route: INSTRUCTORS,
-      expandable: true,
-    },
-    {
-      label: "Inventory",
-      icon: <Box />,
-      route: INVENTORY,
-      expandable: true,
-    },
-     {
-      label: "Inquiry",
+    // {
+    //   route: STUDENTS,
+    //   label: "Students",
+    //   icon: <GraduationCap />,
+    //   expandable: true,
+    // },
+    // {
+    //   label: "Startups/Working Spaces",
+    //   icon: <Building />,
+    //   expandable: true,
+    // },
+    // {
+    //   label: "Courses/Training",
+    //   icon: <BookOpen />,
+    //   expandable: true,
+    // },
+    // {
+    //   label: "Employees",
+    //   icon: <BanknoteArrowDown />,
+    //   route: INSTRUCTORS,
+    //   expandable: true,
+    // },
+    // {
+    //   label: "Inventory",
+    //   icon: <Box />,
+    //   route: INVENTORY,
+    //   expandable: true,
+    // },
+    //  {
+    //   label: "Inquiry",
+    //   icon: <HelpCircle />,
+    //   expandable : true
+    // },
+       {
+      label: "Class",
       icon: <HelpCircle />,
-      expandable : true
-    },
+      route: COURSES,
+     },
+      {
+      label: "Fee",
+      icon: <HelpCircle />,
+      route: FEES,
+     },
+   
   ];
 
   const submenuItems = {
-    "Admin Panel": [
-      { route: DASHBOARD, label: "Dashboard" },
-      {
-        label: "Finances",
-        expandable: true,
-        subItems: [
-          // { route: FINANCE_SUMMARY, label: "Finance Summary" },
-          { route: WORKINGSPACE, label: "Working Spaces" },
-          { route: COURSE, label: "Course" },
-        ],
-      },
-      {
-        label: "Expenses",
-        expandable: true,
-        subItems: [
-          { route: WS_EXPENSES, label: "Working Spaces" },
-          { route: COURSES_EXPENSES, label: "Course" },
-        ],
-      },
-      { route: USER_MANAGEMENT, label: "User Management" },
-      { route: REPORTS, label: " Reports" },
-    ],
-    Students: [
-      // { route: STUDENT_SUMMARY, label: "Student Summary" },
-      { route: STUDENTS, label: "Students" },
-      { route: FEES, label: "Fees" },
-      { route: ATTENDANCE, label: "Attendance" },
-    ],
-    "Courses/Training": [
-      // { route: COURSE_SUMMARY, label: "Course Summary" },
-      { route: CATEGORIES, label: "Categories" },
-      { route: COURSES, label: "Courses" },
-      { route: BATCHES, label: "Classes" },
-    ],
-    Employees: [
-      // { route: EMPLOYEE_SUMMARY, label: "HR Summary" },
-      { route: INSTRUCTORS, label: "SMEs" },
-      { route: EMPLOYEE, label: "Employee" },
-    ],
-    "Startups/Working Spaces": [
-      // { route: STARTUP_SUMMARY, label: "Startup/Working Space Summary" },
-      { route: MANAGE_WORKINGSPACE, label: "Manage Workspace" },
-      { route: INDIVIDUAL, label: "Individual" },
-      { route: COMPANY, label: "Company" },
-    ],
-    Inventory: [
-      // { route: INVENTORY_SUMMARY, label: "Inventory Summary" },
-      { route: INVENTORY, label: "Inventory" },
-    ],
-       Inquiry: [
-      { route: TRAINING_INQUIRY, label: "Training " },
-      { route: STARTUP_INQUIRY, label: "Startup" },
-    ],
+ 
+ 
+ 
+ 
   };
 
   const handleMenuItemClick = (route, isSubMenu = false) => {

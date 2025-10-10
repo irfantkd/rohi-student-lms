@@ -71,7 +71,7 @@ const SignInHero = () => {
         if (Object.keys(validationErrors).length === 0) {
           try {
             const res = await login({
-              path: "admin/authentication/login",
+              path: "user/authentication/login",
               body: values,
             }).unwrap();
             resetForm();
