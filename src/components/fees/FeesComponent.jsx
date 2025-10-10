@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDownloadChallanMutation, useUploadChallanMutation } from "../../api/apiSlice";
 import { toast } from "react-toastify";
+import { DollarSign, Calendar, Upload, Download, CheckCircle, Clock, FileText } from "lucide-react";
 
 const FeesComponent = () => {
   const studentData = useSelector((state) => state.auth.user);
@@ -38,31 +39,17 @@ const FeesComponent = () => {
 
     const formData = new FormData();
     formData.append("challan_file", file);
-    // Some Laravel/PHP backends need this for PATCH with FormData
     formData.append("_method", "PATCH");
-
-    // Debug: Check what's being sent
-    console.log("File being uploaded:", file);
-    console.log("File name:", file.name);
-    console.log("File size:", file.size);
-    console.log("File type:", file.type);
-    
-    // Verify FormData contents
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
 
     try {
       const result = await uploadChallan({
-        path: `/user/fees/installments/${installment.installment_uuid}/upload-paid-challan?method=patch`,
+        path: `/user/fees/installments/${installment.installment_uuid}/upload-paid-challan?method=PATCH`,
         formData: formData,
       }).unwrap();
 
-      console.log("Upload result:", result);
       toast.success(`File uploaded for Installment ${installments.indexOf(installment) + 1}`);
       setSelectedFiles(prev => ({ ...prev, [installment.installment_uuid]: null }));
       
-      // Reset the file input
       if (fileInputRefs.current[installment.installment_uuid]) {
         fileInputRefs.current[installment.installment_uuid].value = "";
       }
@@ -87,93 +74,219 @@ const FeesComponent = () => {
     }
   };
 
+  const totalFeeAmount = installments[0]?.total_fee || "0.00";
+  const paidInstallments = installments.filter(inst => inst.status === "paid").length;
+  const totalInstallments = installments.length;
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6" style={{ color: "#014376" }}>
-        Fee Installments for {studentData.first_name} {studentData.last_name}
-      </h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-[#014376] mb-2">Fee Management</h1>
+          <p className="text-gray-600">
+            {studentData.first_name} {studentData.last_name} - {studentData.course_name}
+          </p>
+        </div>
 
-      <div className="space-y-5">
-        {installments.map((inst, index) => (
-          <div
-            key={inst.installment_uuid}
-            className="p-5 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center transition-transform hover:scale-105"
-            style={{
-              backgroundColor: index % 2 === 0 ? "#EAF4F4" : "#fff",
-              borderLeft: `6px solid ${inst.status === "paid" ? "green" : "#31918D"}`,
-            }}
-          >
-            <div className="mb-4 md:mb-0">
-              <p className="text-lg font-semibold" style={{ color: "#014376" }}>
-                Installment {index + 1} ({inst.status.toUpperCase()})
-              </p>
-              <p><strong>Total Fee:</strong> {inst.total_fee}</p>
-              <p><strong>Amount:</strong> {inst.amount}</p>
-              <p><strong>Due Date:</strong> {new Date(inst.due_date).toLocaleDateString()}</p>
-              <p>
-                <strong>Paid Date:</strong>{" "}
-                {inst.paid_date ? new Date(inst.paid_date).toLocaleDateString() : "Not Paid"}
-              </p>
-              {inst.fee_note && <p><strong>Note:</strong> {inst.fee_note}</p>}
-              <p><strong>Batch:</strong> {inst.batch_name}</p>
-              <p><strong>Course:</strong> {inst.course_name}</p>
-              <p><strong>Teacher:</strong> {inst.teacher_name}</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {/* Hidden file input */}
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                ref={el => (fileInputRefs.current[inst.installment_uuid] = el)}
-                onChange={(e) => handleFileChange(e, inst.installment_uuid)}
-              />
-
-              {/* Upload button triggers file input */}
-              <button
-                disabled={index !== firstUnpaidIndex || isLoading}
-                style={{
-                  backgroundColor: index === firstUnpaidIndex ? "#014376" : "#ccc",
-                  color: "#fff",
-                  padding: "0.6rem 1.2rem",
-                  borderRadius: "0.5rem",
-                  cursor: index === firstUnpaidIndex ? "pointer" : "not-allowed",
-                  height: "fit-content",
-                }}
-                onClick={() => {
-                  if (fileInputRefs.current[inst.installment_uuid]) {
-                    fileInputRefs.current[inst.installment_uuid].click();
-                  }
-                }}
-              >
-                {selectedFiles[inst.installment_uuid]
-                  ? "File Selected! Click to Upload"
-                  : "Upload"}
-              </button>
-
-              {/* Confirm upload button */}
-              {selectedFiles[inst.installment_uuid] && (
-                <button
-                  disabled={isLoading}
-                  className="mt-1 px-4 py-2 rounded bg-[#31918D] text-white hover:bg-[#267b78] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => handleUpload(inst)}
-                >
-                  {isLoading ? "Uploading..." : "Submit"}
-                </button>
-              )}
-
-              {/* Download Challan button */}
-              <button
-                disabled={isDownloading}
-                className="mt-1 px-4 py-2 rounded bg-[#014376] text-white hover:bg-[#013057] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handleDownload(inst, index)}
-              >
-                {isDownloading ? "Downloading..." : "Download Challan"}
-              </button>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-[#014376] transform transition-all hover:scale-105">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Total Fee</p>
+                <p className="text-3xl font-bold text-[#014376]">Rs. {totalFeeAmount}</p>
+              </div>
+              <div className="bg-blue-100 p-4 rounded-full">
+                <DollarSign className="w-8 h-8 text-[#014376]" />
+              </div>
             </div>
           </div>
-        ))}
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-[#31918D] transform transition-all hover:scale-105">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Installments Paid</p>
+                <p className="text-3xl font-bold text-[#31918D]">
+                  {paidInstallments}/{totalInstallments}
+                </p>
+              </div>
+              <div className="bg-teal-100 p-4 rounded-full">
+                <CheckCircle className="w-8 h-8 text-[#31918D]" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-amber-500 transform transition-all hover:scale-105">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Status</p>
+                <p className="text-2xl font-bold text-amber-600">
+                  {paidInstallments === totalInstallments ? "Completed" : "In Progress"}
+                </p>
+              </div>
+              <div className="bg-amber-100 p-4 rounded-full">
+                <Clock className="w-8 h-8 text-amber-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Installments List */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <h2 className="text-2xl font-bold text-[#014376] mb-6 flex items-center gap-2">
+            <FileText className="w-6 h-6" />
+            Fee Installments
+          </h2>
+
+          <div className="space-y-4">
+            {installments.map((inst, index) => {
+              const isActive = index === firstUnpaidIndex;
+              const isPaid = inst.status === "paid";
+              const hasSelectedFile = selectedFiles[inst.installment_uuid];
+
+              return (
+                <div
+                  key={inst.installment_uuid}
+                  className={`relative rounded-xl border-2 p-6 transition-all duration-300 ${
+                    isPaid
+                      ? "bg-green-50 border-green-300"
+                      : isActive
+                      ? "bg-gradient-to-r from-blue-50 to-teal-50 border-[#31918D] shadow-lg"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  {/* Status Badge */}
+                  {/* <div className="absolute top-4 right-4">
+                    <span
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
+                        isPaid
+                          ? "bg-green-500 text-white"
+                          : isActive
+                          ? "bg-amber-500 text-white"
+                          : "bg-gray-400 text-white"
+                      }`}
+                    >
+                      {isPaid ? "PAID" : isActive ? "PENDING" : "LOCKED"}
+                    </span>
+                  </div> */}
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Installment Details */}
+                    <div className="lg:col-span-2">
+                      <h3 className="text-xl font-bold text-[#014376] mb-4">
+                        Installment {index + 1}
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                          <DollarSign className="w-5 h-5 text-[#31918D] mt-0.5" />
+                          <div>
+                            <p className="text-sm text-gray-600">Amount</p>
+                            <p className="font-semibold text-gray-900">Rs. {inst.amount}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <Calendar className="w-5 h-5 text-[#31918D] mt-0.5" />
+                          <div>
+                            <p className="text-sm text-gray-600">Due Date</p>
+                            <p className="font-semibold text-gray-900">
+                              {new Date(inst.due_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {inst.paid_date && (
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-600">Paid Date</p>
+                              <p className="font-semibold text-gray-900">
+                                {new Date(inst.paid_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {inst.fee_note && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-semibold">Note:</span> {inst.fee_note}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-3 lg:items-end lg:justify-center">
+                      {/* Hidden file input */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        ref={el => (fileInputRefs.current[inst.installment_uuid] = el)}
+                        onChange={(e) => handleFileChange(e, inst.installment_uuid)}
+                      />
+
+                      {/* Upload Button */}
+                      <button
+                        disabled={!isActive || isLoading || isPaid}
+                        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                          isActive && !isPaid
+                            ? "bg-[#014376] hover:bg-[#013057] text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                        onClick={() => {
+                          if (fileInputRefs.current[inst.installment_uuid]) {
+                            fileInputRefs.current[inst.installment_uuid].click();
+                          }
+                        }}
+                      >
+                        <Upload className="w-5 h-5" />
+                        {hasSelectedFile ? "Change File" : "Upload Challan"}
+                      </button>
+
+                      {/* Submit Button - shown when file is selected */}
+                      {hasSelectedFile && (
+                        <button
+                          disabled={isLoading}
+                          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-[#31918D] hover:bg-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => handleUpload(inst)}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          {isLoading ? "Submitting..." : "Submit"}
+                        </button>
+                      )}
+
+                      {/* Download Button */}
+                      <button
+                        disabled={isDownloading}
+                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-[#014376] to-[#31918D] hover:from-[#013057] hover:to-[#267b78] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleDownload(inst, index)}
+                      >
+                        <Download className="w-5 h-5" />
+                        {isDownloading ? "Downloading..." : "Download Challan"}
+                      </button>
+
+                      {hasSelectedFile && (
+                        <p className="text-xs text-center text-gray-600 mt-1">
+                          📎 {selectedFiles[inst.installment_uuid]?.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>Only the first pending installment can be uploaded at a time.</p>
+        </div>
       </div>
     </div>
   );
