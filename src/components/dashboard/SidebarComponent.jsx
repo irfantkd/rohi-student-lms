@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import ArrowDown from "../../assets/icons/navbar/ArrowDown";
 import ArrowUp from "../../assets/icons/navbar/ArrowUp";
 import MenuIcon from "../../assets/icons/navbar/Menu";
@@ -47,6 +48,9 @@ import SidebarLogo from "./SidebarLogo";
 const SidebarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get student data from Redux store
+  const studentData = useSelector((state) => state.auth.user);
 
   const [hovered, setHovered] = useState(null);
   const [expandedMenu, setExpandedMenu] = useState(null);
@@ -55,63 +59,62 @@ const SidebarComponent = () => {
   const [selectedSubMenu, setSelectedSubMenu] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
 
-  const menuItems = [
-    {
-      label: "Dashboard",
-      icon: <LayoutDashboard />,
-      route: DASHBOARD,
-    },
-    // {
-    //   route: STUDENTS,
-    //   label: "Students",
-    //   icon: <GraduationCap />,
-    //   expandable: true,
-    // },
-    // {
-    //   label: "Startups/Working Spaces",
-    //   icon: <Building />,
-    //   expandable: true,
-    // },
-    // {
-    //   label: "Courses/Training",
-    //   icon: <BookOpen />,
-    //   expandable: true,
-    // },
-    // {
-    //   label: "Employees",
-    //   icon: <BanknoteArrowDown />,
-    //   route: INSTRUCTORS,
-    //   expandable: true,
-    // },
-    // {
-    //   label: "Inventory",
-    //   icon: <Box />,
-    //   route: INVENTORY,
-    //   expandable: true,
-    // },
-    //  {
-    //   label: "Inquiry",
-    //   icon: <HelpCircle />,
-    //   expandable : true
-    // },
-       {
-      label: "Class",
-      icon: <HelpCircle />,
-      route: COURSES,
-     },
+  // Check if student has all fees paid
+  const hasAllFeesPaid = () => {
+    if (!studentData?.fees || studentData.fees.length === 0) {
+      return false; // No fees means show only fee tab
+    }
+
+    // Check if all installments are paid
+    const allInstallments = studentData.fees.flatMap(fee => fee.installments || []);
+    const allPaid = allInstallments.every(inst => inst.status === "paid");
+    
+    return allPaid;
+  };
+
+  // Determine which menu items to show based on student's fee status
+  const getMenuItems = () => {
+    const baseMenuItems = [
       {
-      label: "Fee",
-      icon: <HelpCircle />,
-      route: FEES,
-     },
-   
-  ];
+        label: "Dashboard",
+        icon: <LayoutDashboard />,
+        route: DASHBOARD,
+      },
+    ];
+
+    // If student has pending fees or no fees, show only Fee tab
+    if (!hasAllFeesPaid()) {
+      return [
+        ...baseMenuItems,
+        {
+          label: "Fee",
+          icon: <HelpCircle />,
+          route: FEES,
+        },
+      ];
+    }
+
+    // If all fees are paid, show all tabs
+    return [
+      ...baseMenuItems,
+      {
+        label: "Class",
+        icon: <HelpCircle />,
+        route: COURSES,
+      },
+      {
+        label: "Fee",
+        icon: <HelpCircle />,
+        route: FEES,
+      },
+      // Add more menu items here as needed
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   const submenuItems = {
- 
- 
- 
- 
+    // Add submenu items if needed
   };
 
   const handleMenuItemClick = (route, isSubMenu = false) => {
@@ -122,71 +125,70 @@ const SidebarComponent = () => {
     navigate(route);
   };
 
-useEffect(() => {
-  const storedMenu = localStorage.getItem("selectedMenu");
-  if (storedMenu) setSelectedMenu(storedMenu);
+  useEffect(() => {
+    const storedMenu = localStorage.getItem("selectedMenu");
+    if (storedMenu) setSelectedMenu(storedMenu);
 
-  setSelectedSubMenu(null);
-  setExpandedMenu(null);
-  setExpandedSubMenu(null);
+    setSelectedSubMenu(null);
+    setExpandedMenu(null);
+    setExpandedSubMenu(null);
 
-  let matchedMenu = null;
-  let matchedSubMenu = null;
-  let matchedExpandedMenu = null;
+    let matchedMenu = null;
+    let matchedSubMenu = null;
+    let matchedExpandedMenu = null;
 
-  // Flatten all menu + submenus
-  const allRoutes = [];
+    // Flatten all menu + submenus
+    const allRoutes = [];
 
-  menuItems.forEach((item) => {
-    if (item.route) {
-      allRoutes.push({
-        menu: item.label,
-        route: item.route,
-      });
-    }
+    menuItems.forEach((item) => {
+      if (item.route) {
+        allRoutes.push({
+          menu: item.label,
+          route: item.route,
+        });
+      }
 
-    if (submenuItems[item.label]) {
-      submenuItems[item.label].forEach((subItem) => {
-        if (subItem.route) {
-          allRoutes.push({
-            menu: item.label,
-            sub: subItem.route,
-            route: subItem.route,
-          });
-        }
-        if (subItem.subItems) {
-          subItem.subItems.forEach((nested) => {
+      if (submenuItems[item.label]) {
+        submenuItems[item.label].forEach((subItem) => {
+          if (subItem.route) {
             allRoutes.push({
               menu: item.label,
-              sub: nested.route,
-              route: nested.route,
-              expanded: subItem.label,
+              sub: subItem.route,
+              route: subItem.route,
             });
-          });
-        }
-      });
+          }
+          if (subItem.subItems) {
+            subItem.subItems.forEach((nested) => {
+              allRoutes.push({
+                menu: item.label,
+                sub: nested.route,
+                route: nested.route,
+                expanded: subItem.label,
+              });
+            });
+          }
+        });
+      }
+    });
+
+    // ✅ Find the longest matching route
+    const current = location.pathname;
+    const match = allRoutes
+      .filter((r) => current.startsWith(r.route))
+      .sort((a, b) => b.route.length - a.route.length)[0]; // longest match
+
+    if (match) {
+      matchedMenu = match.menu;
+      matchedSubMenu = match.sub || null;
+      matchedExpandedMenu = match.expanded || null;
+
+      setSelectedMenu(matchedMenu);
+      setSelectedSubMenu(matchedSubMenu);
+      setExpandedMenu(matchedMenu);
+      setExpandedSubMenu(matchedExpandedMenu);
+      localStorage.setItem("selectedMenu", matchedMenu);
     }
-  });
-
-  // ✅ Find the longest matching route
-  const current = location.pathname;
-  const match = allRoutes
-    .filter((r) => current.startsWith(r.route))
-    .sort((a, b) => b.route.length - a.route.length)[0]; // longest match
-
-  if (match) {
-    matchedMenu = match.menu;
-    matchedSubMenu = match.sub || null;
-    matchedExpandedMenu = match.expanded || null;
-
-    setSelectedMenu(matchedMenu);
-    setSelectedSubMenu(matchedSubMenu);
-    setExpandedMenu(matchedMenu);
-    setExpandedSubMenu(matchedExpandedMenu);
-    localStorage.setItem("selectedMenu", matchedMenu);
-  }
-}, [location]);
-
+  }, [location, studentData]); // Add studentData to dependencies
 
   const getMenuItemClasses = (item) => {
     const baseClasses =
