@@ -48,9 +48,9 @@ import SidebarLogo from "./SidebarLogo";
 const SidebarComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Get student data from Redux store
-  const studentData = useSelector((state) => state.auth.user);
+  const studentData = useSelector((state) => state.auth.userData);
 
   const [hovered, setHovered] = useState(null);
   const [expandedMenu, setExpandedMenu] = useState(null);
@@ -60,16 +60,34 @@ const SidebarComponent = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   // Check if student has all fees paid
-  const hasAllFeesPaid = () => {
-    if (!studentData?.fees || studentData.fees.length === 0) {
-      return false; // No fees means show only fee tab
-    }
+  // const hasAllFeesPaid = () => {
+  //   if (
+  //     !studentData?.fees ||
+  //     studentData?.fees?.[0]?.installments?.[0]?.status === "paid"
+  //   ) {
+  //     return false; // No fees means show only fee tab
+  //   }
 
-    // Check if all installments are paid
-    const allInstallments = studentData.fees.flatMap(fee => fee.installments || []);
-    const allPaid = allInstallments.every(inst => inst.status === "paid");
-    
-    return allPaid;
+  //   // Check if all installments are paid
+  //   const allInstallments = studentData.fees.flatMap(
+  //     (fee) => fee.installments || []
+  //   );
+  //   const allPaid = allInstallments.find((inst) => inst.status === "paid");
+
+  //   return allPaid;
+  // };
+  const hasAllFeesPaid = () => {
+    if (
+      !studentData?.fees ||
+      studentData?.fees?.[0]?.installments?.[0]?.status !== "paid"
+    ) {
+      return false;
+    }
+    const allInstallments = studentData?.fees.flatMap(
+      (fee) => fee.installments || []
+    );
+    if (allInstallments.length === 0) return false;
+    return allInstallments.find((inst) => inst.status === "paid");
   };
 
   // Determine which menu items to show based on student's fee status

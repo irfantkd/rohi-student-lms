@@ -142,7 +142,7 @@ export default function Router() {
           element: <InstructorDetailsTab />,
         },
 
-           {
+        {
           path: EMPLOYEE,
           element: (
             <PrivateRoute
@@ -223,14 +223,14 @@ export default function Router() {
           ),
         },
         {
-  path: COURSE_STUDENTS,
-  element: (
-    <PrivateRoute
-      element={<CourseStudentsPage />}
-      isAuthenticated={useCheckAuthToken}
-    />
-  ),
-},
+          path: COURSE_STUDENTS,
+          element: (
+            <PrivateRoute
+              element={<CourseStudentsPage />}
+              isAuthenticated={useCheckAuthToken}
+            />
+          ),
+        },
         // {
         //   path: COURSES,
         //   element: <CoursesComponent />,
@@ -366,23 +366,23 @@ export default function Router() {
           ),
         },
         {
-  path: TRAINING_INQUIRY_COURSE,
-  element: (
-    <PrivateRoute
-      element={<InquiryDetailPage />}
-      isAuthenticated={useCheckAuthToken}
-    />
-  ),
-},
-{
-  path: TRAINING_INQUIRY_DETAILS,
-  element: (
-    <PrivateRoute
-      element={<InquiryDetailView />}
-      isAuthenticated={useCheckAuthToken}
-    />
-  ),
-},
+          path: TRAINING_INQUIRY_COURSE,
+          element: (
+            <PrivateRoute
+              element={<InquiryDetailPage />}
+              isAuthenticated={useCheckAuthToken}
+            />
+          ),
+        },
+        {
+          path: TRAINING_INQUIRY_DETAILS,
+          element: (
+            <PrivateRoute
+              element={<InquiryDetailView />}
+              isAuthenticated={useCheckAuthToken}
+            />
+          ),
+        },
         {
           path: STARTUP_INQUIRY,
           element: (

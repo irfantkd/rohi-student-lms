@@ -4,6 +4,7 @@ import { useEffect } from "react";
 const initialState = {
   token: localStorage.getItem("token") || null, // Load token from localStorage if available
   user: null,
+  userData: null,
   status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
 };
@@ -23,12 +24,16 @@ const authSlice = createSlice({
       state.user = null;
       localStorage.removeItem("token"); // Clear token from localStorage on logout
       console.log("CC Called");
+      state.userData = null;
     },
     setStatus: (state, action) => {
       state.status = action.payload;
     },
     setError: (state, action) => {
       state.error = action.payload;
+    },
+    setUserData: (state, action) => {
+      state.userData = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -54,8 +59,13 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearCredentials, setStatus, setError } =
-  authSlice.actions;
+export const {
+  setCredentials,
+  clearCredentials,
+  setStatus,
+  setError,
+  setUserData,
+} = authSlice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectAuthStatus = (state) => state.auth.status;
 export const selectAuthError = (state) => state.auth.error;

@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const REACT_APP_API_URL = "https://api-rohi.codelab.pk/public/api";
+// const REACT_APP_API_URL = "https://dev-rohi-backend.codelab.pk/public/api";
+// const REACT_APP_API_URL = "http://192.168.1.25:8000/api";
 const API_URL = REACT_APP_API_URL;
 
 // Helper function to download blob
@@ -84,12 +86,7 @@ export const apiSlice = createApi({
 
     // PDF Download endpoint
     postWithPdfDownload: builder.mutation({
-      queryFn: async (
-        { path, body, filename },
-        api,
-        extraOptions,
-        baseQuery
-      ) => {
+      queryFn: async ({ path, body, filename }, api) => {
         try {
           const state = api.getState();
           const token = state.auth?.token;
@@ -289,12 +286,7 @@ export const apiSlice = createApi({
 
     // Upload Challan endpoint - PATCH with FormData
     uploadChallan: builder.mutation({
-      queryFn: async (
-        { path, formData },
-        api,
-        extraOptions,
-        baseQuery
-      ) => {
+      queryFn: async ({ path, formData }, api, extraOptions, baseQuery) => {
         try {
           const state = api.getState();
           const token = state.auth?.token;
@@ -317,7 +309,10 @@ export const apiSlice = createApi({
           });
 
           console.log("Response status:", response.status);
-          console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+          console.log(
+            "Response headers:",
+            Object.fromEntries(response.headers.entries())
+          );
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({

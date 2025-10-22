@@ -5,7 +5,7 @@ import { ADMINDASHBOARD, PROFILE, SIGNIN } from "../routes/RouteConstants";
 import { clearCredentials } from "../../features/auth/authSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../ui/common/ShowToast";
 
 const ProfileDetailsDropdown = ({}) => {
@@ -13,6 +13,8 @@ const ProfileDetailsDropdown = ({}) => {
   const dropdownRef = useRef(null); // Ref to track the dropdown element
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth);
+  console.log("user", user);
 
   const handleClick = () => {
     setShowDropdown(!showDropdown);
@@ -38,7 +40,9 @@ const ProfileDetailsDropdown = ({}) => {
   const adminProfileImage = localStorage.getItem("adminProfileImage");
 
   return (
-    <div ref={dropdownRef}> {/* Wrap the component in a ref */}
+    <div ref={dropdownRef}>
+      {" "}
+      {/* Wrap the component in a ref */}
       <button
         data-dropdown-toggle="dropdownAvatarName"
         className="flex items-center text-sm font-medium text-gray-900 rounded-full pe-1 hover:text-brown btn-focus-gradient font"
@@ -47,10 +51,10 @@ const ProfileDetailsDropdown = ({}) => {
       >
         <img
           className="object-fill w-8 h-8 rounded-full me-2"
-          src={adminProfileImage ? adminProfileImage : profileImage}
+          src={user?.user?.avatar?.file_url || adminProfileImage}
           alt="Admin photo"
         />
-        Admin
+        {user?.user?.first_name} {user?.user?.last_name}
         <svg
           className="w-2.5 h-2.5 ms-3"
           aria-hidden="true"
