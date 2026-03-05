@@ -32,7 +32,8 @@ const ClassesComponent = () => {
   const [selectedID, setSelectedID] = useState(null);
   const [currentItem, setCurrentItem] = useState([]);
   const [initialValues, setInitialValues] = useState([]);
-  const [isCreateBatchConfirmModalOpen, setIsCreateBatchConfirmModalOpen] = useState(false);
+  const [isCreateBatchConfirmModalOpen, setIsCreateBatchConfirmModalOpen] =
+    useState(false);
   const [activeTimeTab, setActiveTimeTab] = useState("all");
   const [activeHallTab, setActiveHallTab] = useState("all");
   const [itemsPerPage, setItemsPerPage] = useState(100);
@@ -115,7 +116,9 @@ const ClassesComponent = () => {
   }, [courseData]);
 
   useEffect(() => {
-    const batch = batches.find((batch) => batch.batch_uuid === currentItem.uuid);
+    const batch = batches.find(
+      (batch) => batch.batch_uuid === currentItem.uuid
+    );
     if (batch) {
       setInitialValues({
         batch: batch?.name,
@@ -201,15 +204,27 @@ const ClassesComponent = () => {
   // Filter classes based on time and hall
   const filteredClasses = useMemo(() => {
     return batches.filter((cls) => {
-      const timeMatch = activeTimeTab === "all" || cls.time_slot === activeTimeTab;
-      const hallMatch = activeHallTab === "all" || cls.hall?.id?.toString() === activeHallTab;
+      const timeMatch =
+        activeTimeTab === "all" || cls.time_slot === activeTimeTab;
+      const hallMatch =
+        activeHallTab === "all" || cls.hall?.id?.toString() === activeHallTab;
       return timeMatch && hallMatch;
     });
   }, [batches, activeTimeTab, activeHallTab]);
 
   const Editfields = [
-    { name: "courseData", label: "Course", type: "select", options: courseOptions },
-    { name: "instructorData", label: "Instructor", type: "select", options: teacherOptions },
+    {
+      name: "courseData",
+      label: "Course",
+      type: "select",
+      options: courseOptions,
+    },
+    {
+      name: "instructorData",
+      label: "Instructor",
+      type: "select",
+      options: teacherOptions,
+    },
     { name: "time_slot", label: "Time Slot", type: "time" },
   ];
 
@@ -238,7 +253,11 @@ const ClassesComponent = () => {
       />
 
       {batchIsLoading && <Loader />}
-      {batchError && <div className="py-4 text-center text-red-500">Error loading Classes</div>}
+      {batchError && (
+        <div className="py-4 text-center text-red-500">
+          Error loading Classes
+        </div>
+      )}
 
       {!batchIsLoading && !batchError && (
         <>
@@ -299,19 +318,21 @@ const ClassesComponent = () => {
                   className="p-6 transition-shadow bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#014376]">{cls.course?.name}</h3>
+                    <h3 className="text-lg font-bold text-[#014376]">
+                      {cls.course?.name}
+                    </h3>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditClick(cls)}
                         className="text-brown"
                       >
-                        <Edit/>
+                        <Edit />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(cls)}
                         className="text-red-600 hover:text-red-800"
                       >
-                        <Trash/>
+                        <Trash />
                       </button>
                       {/* <label className="relative inline-block w-12 h-6">
                         <input
@@ -327,15 +348,42 @@ const ClassesComponent = () => {
                   </div>
 
                   <div className="space-y-2 text-sm text-gray-700">
-                    <p><span className="font-semibold">Instructor:</span> {cls.teacher?.name || "N/A"}</p>
-                    <p><span className="font-semibold">Batch:</span> {cls.batch?.name || "N/A"}</p>
-                    <p><span className="font-semibold">Hall:</span> {cls.hall?.name || "N/A"}</p>
-                    <p><span className="font-semibold">Students:</span> {cls.student_count || 0}</p>
-                    <p><span className="font-semibold">Time:</span> {cls.timing || "N/A"}</p>
-                    <p><span className="font-semibold">Slot:</span> <span className="capitalize">{cls.time_slot}</span></p>
-                    <p><span className="font-semibold">Military Quota:</span> {cls.military_quota || 0}</p>
-                    <p><span className="font-semibold">Civilian Quota:</span> {cls.civilians_quota || 0}</p>
-                    <p><span className="font-semibold">Created:</span> {formatDate(cls.class_created)}</p>
+                    <p>
+                      <span className="font-semibold">Instructor:</span>{" "}
+                      {cls.teacher?.name || "N/A"}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Batch:</span>{" "}
+                      {cls.batch?.name || "N/A"}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Hall:</span>{" "}
+                      {cls.hall?.name || "N/A"}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Students:</span>{" "}
+                      {cls.student_count || 0}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Time:</span>{" "}
+                      {cls.timing || "N/A"}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Slot:</span>{" "}
+                      <span className="capitalize">{cls.time_slot}</span>
+                    </p>
+                    <p>
+                      <span className="font-semibold">Military Quota:</span>{" "}
+                      {cls.military_quota || 0}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Civilian Quota:</span>{" "}
+                      {cls.civilians_quota || 0}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Created:</span>{" "}
+                      {formatDate(cls.class_created)}
+                    </p>
                   </div>
                 </div>
               ))}

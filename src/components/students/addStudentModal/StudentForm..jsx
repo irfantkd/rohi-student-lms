@@ -3,7 +3,7 @@ import "jspdf-autotable";
 import { BookOpen, School, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {  useGetQuery, usePostMutation } from "../../../api/apiSlice";
+import { useGetQuery, usePostMutation } from "../../../api/apiSlice";
 import FormInput from "../../ui/FormInput";
 import Loader from "../../ui/common/LoaderComponent";
 import { toast } from "react-toastify";
@@ -15,7 +15,8 @@ const StudentForm = () => {
   const training_id = location.state?.enrollmentId || null;
   console.log("Inquiry Data:", inquiryData, "Training ID:", training_id);
   const [createStudent, { isLoading, isSuccess, isError }] = usePostMutation();
-  const [createChallan, { isLoading: challanLoading }] = useCreateChallanMutation();
+  const [createChallan, { isLoading: challanLoading }] =
+    useCreateChallanMutation();
   const { data: classData } = useGetQuery({ path: "admin/classes" });
   const genderOptions = [
     { label: "Male", value: "Male" },
@@ -80,58 +81,60 @@ const StudentForm = () => {
   //   }));
   // }, [formData.cnic]);
 
- const downloadChallan = (blob) => {
-  try {
-    if (!(blob instanceof Blob)) {
-      throw new Error("Invalid response: Expected a Blob");
+  const downloadChallan = (blob) => {
+    try {
+      if (!(blob instanceof Blob)) {
+        throw new Error("Invalid response: Expected a Blob");
+      }
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Challan_${formData.first_name}_${
+        formData.last_name
+      }_${new Date().getTime()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading challan:", error);
+      toast.error("Failed to download challan");
+    }
+  };
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    let processedValue = value;
+
+    if (name === "laptopProvided") {
+      processedValue = value === "true" || value === true;
     }
 
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Challan_${formData.first_name}_${formData.last_name}_${new Date().getTime()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
+    if (name === "batchId") {
+      // Find the selected class from classData
+      const selectedClass = classData?.data?.find(
+        (batch) => String(batch.name) === String(value)
+      );
 
-    // Cleanup
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  } catch (error) {
-    console.error("Error downloading challan:", error);
-    toast.error("Failed to download challan");
-  }
-};
-const handleChange = (e) => {
-  const { name, value, files } = e.target;
-  let processedValue = value;
-  aa
-  if (name === "laptopProvided") {
-    processedValue = value === "true" || value === true;
-  }
-  
-  if (name === "batchId") {
-    // Find the selected class from classData
-    const selectedClass = classData?.data?.find(
-      (batch) => String(batch.name) === String(value)
-    );
-    
-    console.log("Selected Class:", selectedClass, "Value:", value);
-    
-    setFormData((prev) => ({
-      ...prev,
-      batchId: selectedClass?.class_id || "", // Use class_id from the API response
-      batchName: value,
-      courseId: selectedClass?.course?.id || "",
-      courseName: selectedClass?.course?.name || "",
-    }));
-  } else {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : processedValue,
-    }));
-  }
-};
+      console.log("Selected Class:", selectedClass, "Value:", value);
+
+      setFormData((prev) => ({
+        ...prev,
+        batchId: selectedClass?.class_id || "", // Use class_id from the API response
+        batchName: value,
+        courseId: selectedClass?.course?.id || "",
+        courseName: selectedClass?.course?.name || "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files ? files[0] : processedValue,
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -395,49 +398,51 @@ const handleChange = (e) => {
     const url = URL.createObjectURL(pdfBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Challan_${student.name || "Student"}_${new Date().getTime()}.pdf`;
+    a.download = `Challan_${
+      student.name || "Student"
+    }_${new Date().getTime()}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-const handleChallanSubmit = async (e) => {
-  e.preventDefault();
+  const handleChallanSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!challanData.totalFee || challanData.totalFee <= 0) {
-    toast.error("Please enter a valid total fee.");
-    return;
-  }
+    if (!challanData.totalFee || challanData.totalFee <= 0) {
+      toast.error("Please enter a valid total fee.");
+      return;
+    }
 
-  try {
-    const payload = {
-      user_id: studentId,
-      course_id: formData.courseId,
-      total_fee: Number(challanData.totalFee),
-      discount: Number(challanData.discount),
-      laptop_fee: Number(challanData.laptopFee),
-      installments: Number(challanData.installments),
-      note: challanData.note,
-    };
+    try {
+      const payload = {
+        user_id: studentId,
+        course_id: formData.courseId,
+        total_fee: Number(challanData.totalFee),
+        discount: Number(challanData.discount),
+        laptop_fee: Number(challanData.laptopFee),
+        installments: Number(challanData.installments),
+        note: challanData.note,
+      };
 
-    // Use fetch or configure the mutation to handle blob response
-    const response = await createChallan({
-      path: "/admin/challan/create",
-      body: payload,
-      responseType: "blob", // Ensure the response is treated as a blob
-    }).unwrap();
+      // Use fetch or configure the mutation to handle blob response
+      const response = await createChallan({
+        path: "/admin/challan/create",
+        body: payload,
+        responseType: "blob", // Ensure the response is treated as a blob
+      }).unwrap();
 
-    // Pass the blob directly to downloadChallan
-    downloadChallan(response);
+      // Pass the blob directly to downloadChallan
+      downloadChallan(response);
 
-    toast.success("Challan generated and downloaded successfully!");
-    setShowChallanForm(false);
-    setShowChallanPrompt(false);
-    navigate("/dashboard/students");
-  } catch (error) {
-    console.error("Error generating challan:", error);
-    toast.error(error?.data?.message || "Failed to generate challan");
-  }
-};
+      toast.success("Challan generated and downloaded successfully!");
+      setShowChallanForm(false);
+      setShowChallanPrompt(false);
+      navigate("/dashboard/students");
+    } catch (error) {
+      console.error("Error generating challan:", error);
+      toast.error(error?.data?.message || "Failed to generate challan");
+    }
+  };
   return (
     <div className="min-h-screen p-4 overflow-hidden">
       {isLoading && <Loader />}
@@ -765,7 +770,8 @@ const handleChallanSubmit = async (e) => {
               onChange={(e) =>
                 setChallanData((prev) => ({
                   ...prev,
-                  totalFee: e.target.value,c
+                  totalFee: e.target.value,
+                  c,
                 }))
               }
               className="w-full mb-4 border px-3 py-2 rounded"
@@ -784,4 +790,4 @@ const handleChallanSubmit = async (e) => {
   );
 };
 
-export default StudentForm; 
+export default StudentForm;

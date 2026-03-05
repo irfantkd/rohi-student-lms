@@ -7,7 +7,6 @@ import {
   Award,
   TrendingUp,
   CheckCircle,
-  DollarSign,
   ChevronRight,
   Mail,
   Phone,
@@ -36,7 +35,8 @@ const DashboardComponent = () => {
 
   // Calculate fee statistics
   const installments =
-    user?.fees?.flatMap((fee) => fee.installments || []) || [];
+    user?.classes?.flatMap((classItem) => classItem.fees?.installments || []) ||
+    [];
   const totalInstallments = installments.length;
   const paidInstallments = installments.filter(
     (inst) => inst.status === "paid"
@@ -189,7 +189,9 @@ const DashboardComponent = () => {
           <div className="bg-white rounded-xl shadow-lg p-5 md:p-6 border border-gray-100 hover:shadow-xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-3">
               <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg p-3">
-                <DollarSign className="w-6 h-6 text-white" />
+                <h1 className="w-6 h-6 flex items-center justify-center rounded-full text-white text-lg font-semibold">
+                  Rs
+                </h1>
               </div>
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Pending
@@ -354,7 +356,9 @@ const DashboardComponent = () => {
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 rounded-xl transition-all border border-emerald-100 hover:border-emerald-200">
                   <div className="flex items-center gap-3">
                     <div className="bg-gradient-to-br from-emerald-500 to-green-500 rounded-lg p-2">
-                      <DollarSign className="w-4 h-4 text-white" />
+                      <h1 className="w-4 h-4 flex items-center justify-center rounded-full text-white text-md font-semibold">
+                        Rs
+                      </h1>
                     </div>
                     <div className="text-left">
                       <p className="font-semibold text-emerald-700 text-sm">

@@ -77,17 +77,18 @@ const SidebarComponent = () => {
   //   return allPaid;
   // };
   const hasAllFeesPaid = () => {
-    if (
-      !studentData?.fees ||
-      studentData?.fees?.[0]?.installments?.[0]?.status !== "paid"
-    ) {
+    if (!studentData?.classes || studentData?.classes?.length === 0)
       return false;
-    }
-    const allInstallments = studentData?.fees.flatMap(
-      (fee) => fee.installments || []
+
+    // Get all installments from all classes
+    const allInstallments = studentData?.classes?.flatMap(
+      (classItem) => classItem.fees?.installments || []
     );
+
     if (allInstallments.length === 0) return false;
-    return allInstallments.find((inst) => inst.status === "paid");
+
+    // Check if at least one installment is paid
+    return allInstallments.some((inst) => inst.status === "paid");
   };
 
   // Determine which menu items to show based on student's fee status

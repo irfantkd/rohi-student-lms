@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import CodeLabLogo from "../../../assets/images/SigninImages/logo.png";
+import Logo from "../../../assets/images/park logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { usePostMutation } from "../../../api/apiSlice";
@@ -8,198 +8,166 @@ import { useFormik } from "formik";
 import ForgetImage from "../../../assets/images/forget/ezgif.com-video-to-gif-converter.gif";
 import ForgetImage2 from "../../../assets/images/forget/Forgotpassword1-ezgif.com-video-to-gif-converter.gif";
 import ArrowImage from "../../../assets/images/forget/arrow.png";
-import { SIGNIN, NEWPASSWORD } from "../../routes/RouteConstants";
+import { SIGNIN } from "../../routes/RouteConstants";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { setCredentials } from "../../../features/auth/authSlice";
-const defaultState = {
-  password_confirmation: "",
-  password: "",
-};
+
 const ForgetComponent = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [passicon, setPassIcon] = useState(false);
+  const [confirmPassIcon, setConfirmPassIcon] = useState(false);
   const error = useSelector((state) => state.error.error);
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [login, { isLoading }] = usePostMutation();
+  const [updatePassword, { isLoading }] = usePostMutation();
   const [imageValue, setImageValue] = useState(true);
+
   const signInValidation = Yup.object({
-    password_confirmation: Yup.string()
-      .min(8, "Confirm Password must be at least 8 characters")
-      .required("Confirm Password is required"),
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
       .required("Password is required"),
+    password_confirmation: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Confirm Password is required"),
   });
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
       setImageValue(false);
     }, 2000);
+    return () => clearTimeout(timeOut);
+  }, []);
 
-    return () => {
-      clearTimeout(timeOut);
-    };
-  }, [imageValue]);
-  const {
-    handleBlur,
-    handleChange,
-    handleSubmit,
-    values,
-    errors,
-    validateForm,
-    touched,
-    setSubmitting,
-    resetForm,
-  } = useFormik({
-    initialValues: defaultState,
-    validationSchema: signInValidation,
-    validateOnChange: true,
-    validateOnBlur: true,
-    onSubmit: (values, { setSubmitting, resetForm }) => {
-      setFormSubmitted(true);
-      validateForm().then(async (validationErrors) => {
-        if (Object.keys(validationErrors).length === 0) {
-          try {
-            const res = await login({
-              path: "admin/authentication/login",
-              body: values,
-            }).unwrap();
-            console.log("value", values);
-            dispatch(setCredentials({ user: res.data, token: res.meta.token }));
-            navigate(ADMINDASHBOARD);
-          } catch (err) {
-            console.error("Failed to login:", err);
-          } finally {
-            setSubmitting(false);
-            resetForm();
-          }
-        } else {
-          setSubmitting(false);
+  const { handleBlur, handleChange, handleSubmit, values, errors, touched } =
+    useFormik({
+      initialValues: { password: "", password_confirmation: "" },
+      validationSchema: signInValidation,
+      onSubmit: async (values) => {
+        try {
+          await updatePassword({
+            path: "admin/authentication/reset-password",
+            body: values,
+          }).unwrap();
+          // Navigate to Signin on success
+          navigate(SIGNIN);
+        } catch (err) {
+          console.error("Failed to reset password:", err);
         }
-      });
-    },
-  });
+      },
+    });
+
   return (
-    <section className="flex pt-16 pb-4 md:pt-10 h-screen">
-      <div className="container flex flex-col gap-12 w-full md:w-[60%] md:border-r border-gray-500">
-        <div className="flex items-center justify-center md:items-center md:justify-center">
-          <img src={CodeLabLogo} alt="logo" className="w-48 md:w-64" />
+    <section className="flex pt-16 pb-4 md:pt-10 h-screen bg-white">
+      <div className="container flex flex-col gap-12 w-full md:w-[60%] md:border-r border-gray-200">
+        <div className="flex items-center justify-center">
+          <img src={Logo} alt="logo" className="w-48 md:w-54" />
         </div>
-        <form className="flex flex-col gap-5 md:gap-20" onSubmit={handleSubmit}>
-          <div className="flex flex-col items-center justify-center gap-1">
-            <h1 className="flex gap-2 items-center sm:text-4xl text-2xl md:text-4xl font-semibold">
+
+        <form className="flex flex-col gap-8 md:gap-14" onSubmit={handleSubmit}>
+          <div className="flex flex-col items-center justify-center gap-1 text-center">
+            <h1 className="text-2xl md:text-4xl font-bold text-[#014376]">
               New Password
             </h1>
-            <p className="text-xs md:text-sm text-center px-5 sm:text-center tracking-wide">
-              Your new password must be differnet from previously used password
+            <p className="text-xs md:text-sm text-gray-500 px-5 tracking-wide max-w-sm">
+              Your new password must be different from previously used
+              passwords.
             </p>
           </div>
-          <div className="relative flex flex-col gap-3 md:flex md:flex-col md:gap-5 md:w-[60%] md:mx-auto md:items-start">
+
+          <div className="flex flex-col gap-5 md:w-[65%] mx-auto w-full px-6">
+            {/* New Password Input */}
             <div className="relative w-full">
               <input
                 type={passicon ? "text" : "password"}
                 name="password"
-                placeholder={
-                  errors.password && touched.password ? "" : "New Password*"
-                }
-                className={`p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 w-full ${
-                  errors.password && touched.password && "border-red-500"
+                placeholder="New Password*"
+                className={`p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31918D] w-full transition-all ${
+                  errors.password && touched.password
+                    ? "border-orange-500"
+                    : "border-gray-300"
                 }`}
                 value={values.password}
                 onBlur={handleBlur}
                 onChange={handleChange}
               />
+              <span className="absolute right-4 top-4 cursor-pointer text-gray-400">
+                {passicon ? (
+                  <FaEyeSlash onClick={() => setPassIcon(false)} />
+                ) : (
+                  <FaEye onClick={() => setPassIcon(true)} />
+                )}
+              </span>
               {errors.password && touched.password && (
-                <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
+                <div className="text-orange-600 text-[10px] font-bold mt-1">
                   {errors.password}
                 </div>
               )}
-              <span className="absolute right-4 top-4 cursor-pointer">
-                {passicon ? (
-                  <FaEyeSlash
-                    className="text-xl"
-                    onClick={() => setPassIcon(!passicon)}
-                  />
-                ) : (
-                  <FaEye
-                    className="text-xl"
-                    onClick={() => setPassIcon(!passicon)}
-                  />
-                )}
-              </span>
             </div>
+
+            {/* Confirm Password Input */}
             <div className="relative w-full">
               <input
-                type={passicon ? "text" : "password"}
+                type={confirmPassIcon ? "text" : "password"}
                 name="password_confirmation"
-                placeholder={
+                placeholder="Confirm Password*"
+                className={`p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31918D] w-full transition-all ${
                   errors.password_confirmation && touched.password_confirmation
-                    ? ""
-                    : "Confirm Password*"
-                }
-                className={`p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 w-full ${
-                  errors.password_confirmation &&
-                  touched.password_confirmation &&
-                  "border-red-500"
+                    ? "border-orange-500"
+                    : "border-gray-300"
                 }`}
                 value={values.password_confirmation}
                 onBlur={handleBlur}
                 onChange={handleChange}
               />
+              <span className="absolute right-4 top-4 cursor-pointer text-gray-400">
+                {confirmPassIcon ? (
+                  <FaEyeSlash onClick={() => setConfirmPassIcon(false)} />
+                ) : (
+                  <FaEye onClick={() => setConfirmPassIcon(true)} />
+                )}
+              </span>
               {errors.password_confirmation &&
                 touched.password_confirmation && (
-                  <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
+                  <div className="text-orange-600 text-[10px] font-bold mt-1">
                     {errors.password_confirmation}
                   </div>
                 )}
-              <span className="absolute right-4 top-4 cursor-pointer">
-                {passicon ? (
-                  <FaEyeSlash
-                    className="text-xl"
-                    onClick={() => setPassIcon(!passicon)}
-                  />
-                ) : (
-                  <FaEye
-                    className="text-xl"
-                    onClick={() => setPassIcon(!passicon)}
-                  />
-                )}
-              </span>
             </div>
           </div>
-          <div className="flex flex-col md:w-[40%] mx-auto ">
-            <Link
-              to={NEWPASSWORD}
+
+          <div className="flex flex-col items-center w-full px-6 gap-4">
+            <button
               type="submit"
-              className="py-3 bg-red-600 text-center text-lg text-white font-bold rounded-lg hover:bg-red-700 transition duration-300"
+              disabled={isLoading}
+              className="w-full md:w-64 py-3 bg-[#014376] text-white font-bold rounded-lg hover:bg-[#01355d] transition-all active:scale-95 shadow-lg disabled:opacity-50"
             >
-              Send Code
-            </Link>
-            <div className="flex flex-wrap gap-5 items-center justify-center my-4 ">
-              <img src={ArrowImage} alt="" />
+              {isLoading ? "Updating..." : "Update Password"}
+            </button>
+
+            <div className="flex items-center justify-center gap-2">
+              <img src={ArrowImage} alt="back" className="w-4 h-4" />
               <Link
                 to={SIGNIN}
-                className="text-center cursor-pointer border-b border-dotted font-semibold"
+                className="text-center cursor-pointer border-b border-dotted border-gray-500 font-semibold text-gray-600 hover:text-[#31918D]"
               >
                 Back to Login Page
               </Link>
             </div>
           </div>
         </form>
+
         {error && (
-          <div className="error">
+          <div className="bg-orange-50 p-3 mx-6 rounded border border-orange-200 text-orange-700 text-sm">
             {error.title}: {error.description}
           </div>
         )}
       </div>
-      <div className="container mx-auto md:mt-24 md:pr-16 lg:mt-20 lg:pr-28 w-[40%] hidden md:block">
-        <div className="mx-auto">
-          {imageValue ? (
-            <img src={ForgetImage2} alt="" />
-          ) : (
-            <img src={ForgetImage} alt="" />
-          )}
+
+      {/* Side Image Section */}
+      <div className="w-[40%] hidden md:flex items-center justify-center pr-16 lg:pr-28">
+        <div className="max-w-md">
+          <img
+            src={imageValue ? ForgetImage2 : ForgetImage}
+            alt="forget animation"
+            className="w-full h-auto"
+          />
         </div>
       </div>
     </section>

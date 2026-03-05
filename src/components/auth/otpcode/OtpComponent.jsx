@@ -1,219 +1,158 @@
-import React, { useEffect, useState } from "react";
-import CodeLabLogo from "../../../assets/images/SigninImages/logo.png";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useRef } from "react";
+import Logo from "../../../assets/images/park logo.png";
+import { useNavigate } from "react-router-dom";
 import { usePostMutation } from "../../../api/apiSlice";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import ForgetImage from "../../../assets/images/forget/ezgif.com-video-to-gif-converter.gif";
-import ForgetImage2 from "../../../assets/images/forget/Forgotpassword1-ezgif.com-video-to-gif-converter.gif";
-import ArrowImage from "../../../assets/images/forget/arrow.png";
 import { NEWPASSWORD, SIGNIN } from "../../routes/RouteConstants";
-const defaultState = {
-  otp1: "",
-  otp2: "",
-  otp3: "",
-  otp4: "",
 
-  // password: "",
-};
 const OtpComponent = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [passicon, setPassIcon] = useState(false);
-  const error = useSelector((state) => state.error.error);
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [login, { isLoading }] = usePostMutation();
-  const [imageValue, setImageValue] = useState(true);
-  const signInValidation = Yup.object({
-    // email: Yup.string()
-    //   .email("Invalid email address")
-    //   .required("Email is required"),
+  const [verifyOtp, { isLoading }] = usePostMutation();
+
+  // Refs for auto-focusing
+  const inputRefs = [useRef(), useRef(), useRef(), useRef()];
+
+  // Validation: Each field must be exactly 1 digit
+  const otpValidation = Yup.object({
+    otp1: Yup.string()
+      .required("Required")
+      .matches(/^[0-9]$/, "Must be a digit"),
+    otp2: Yup.string()
+      .required("Required")
+      .matches(/^[0-9]$/, "Must be a digit"),
+    otp3: Yup.string()
+      .required("Required")
+      .matches(/^[0-9]$/, "Must be a digit"),
+    otp4: Yup.string()
+      .required("Required")
+      .matches(/^[0-9]$/, "Must be a digit"),
   });
 
-  useEffect(() => {
-    const timeOut = setTimeout(() => {
-      setImageValue(false);
-    }, 2000);
-
-    return () => {
-      clearTimeout(timeOut);
-    };
-  }, [imageValue]);
   const {
     handleBlur,
     handleChange,
     handleSubmit,
     values,
     errors,
-    validateForm,
     touched,
-    setSubmitting,
-
-    resetForm,
+    isValid,
+    dirty,
   } = useFormik({
-    initialValues: defaultState,
-    validationSchema: signInValidation,
-    validateOnChange: true,
-    validateOnBlur: true,
-    onSubmit: (values, { setSubmitting, resetForm }) => {
-      setFormSubmitted(true);
-      validateForm().then(async (validationErrors) => {
-        if (Object.keys(validationErrors).length === 0) {
-          try {
-            const res = await login({
-              path: "admin/authentication/login",
-              body: values,
-            }).unwrap();
-            console.log("value", values);
-            dispatch(setCredentials({ user: res.data, token: res.meta.token }));
-            navigate(ADMINDASHBOARD);
-          } catch (err) {
-            console.error("Failed to login:", err);
-          } finally {
-            setSubmitting(false);
-            resetForm();
-          }
-        } else {
-          setSubmitting(false);
-        }
-      });
+    initialValues: { otp1: "", otp2: "", otp3: "", otp4: "" },
+    validationSchema: otpValidation,
+    onSubmit: async (values) => {
+      const fullOtp = `${values.otp1}${values.otp2}${values.otp3}${values.otp4}`;
+      try {
+        await verifyOtp({
+          path: "admin/authentication/verify-otp",
+          body: { otp: fullOtp },
+        }).unwrap();
+
+        navigate(NEWPASSWORD);
+      } catch (err) {
+        console.error("Verification failed", err);
+      }
     },
   });
 
-  const handleNumbersOnly = (e) => {
-    const inputValue = e.target.value;
-    // Regex to allow only numbers and spaces
-    if (/^[0-9--\s]*$/.test(inputValue) && inputValue.length <= 1) {
-      handleChange(e);
+  // Check if all fields are filled to enable the button
+  const isFormComplete =
+    values.otp1 && values.otp2 && values.otp3 && values.otp4;
+
+  const handleInputLogic = (e, index) => {
+    const { value } = e.target;
+    if (value && index < 3) {
+      inputRefs[index + 1].current.focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !values[`otp${index + 1}`] && index > 0) {
+      inputRefs[index - 1].current.focus();
     }
   };
 
   return (
-    <section className="flex  pt-16 pb-4 md:pt-10 h-screen">
-      <div className="container flex flex-col gap-20 w-full md:w-[60%] md:border-r border-gray-500">
-        <div className="flex items-center justify-center md:items-center md:justify-center">
-          <img src={CodeLabLogo} alt="logo" className="w-48 md:w-64" />
+    <section className="flex pt-16 pb-4 md:pt-10 h-screen bg-white">
+      <div className="container flex flex-col gap-12 w-full md:w-[60%] mx-auto px-4">
+        <div className="flex justify-center">
+          <img src={Logo} alt="logo" className="w-48 md:w-54" />
         </div>
-        <form
-          className="flex flex-col gap-14 md:gap-28"
-          onSubmit={handleSubmit}
-        >
-          <div className="flex flex-col items-center justify-center gap-1">
-            <h1 className="flex gap-2 items-center sm:text-4xl text-2xl md:text-4xl font-semibold tracking-wider  ">
+
+        <form className="flex flex-col gap-10" onSubmit={handleSubmit}>
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-[#014376]">
               Verify your Email
             </h1>
-            <p className="text-xs md:text-sm text-center px-5 sm:text-center tracking-wide w-72">
-              Please enter the 4 Digit code we sent to abcdef@gmail.com
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+              Please enter the 4-digit code sent to your Email
             </p>
           </div>
-          <div className="relative flex  gap-2 md:gap-5 items-center justify-center">
-            <div className="relative">
-              <input
-                type="text"
-                name="otp1"
-                placeholder={errors.otp1 && touched.otp1 ? "" : ""}
-                className={`p-3 border-b-4 border-[#FF0000] rounded-lg focus:outline-none focus:ring-2 text-center text-3xl bg-[#faeeee]   focus:ring-red-600 w-16 h-16  ${
-                  errors.otp1 && touched.otp1 && "border-red-500"
-                }`}
-                value={values.otp1}
-                onBlur={handleBlur}
-                onChange={handleNumbersOnly}
-              />
-              {errors.otp1 && touched.otp1 && (
-                <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
-                  {errors.otp1}
-                </div>
-              )}
-            </div>
-            <div className="relative ">
-              <input
-                type="text"
-                name="otp2"
-                placeholder={errors.otp2 && touched.otp2 ? "" : ""}
-                className={`p-3 border-b-4  border-[#FF0000] rounded-lg focus:outline-none bg-[#faeeee] focus:ring-2 w-16 h-16 text-center text-3xl   focus:ring-red-600 ${
-                  errors.otp2 && touched.otp2 && "border-red-500"
-                }`}
-                value={values.otp2}
-                onBlur={handleBlur}
-                onChange={handleNumbersOnly}
-              />
-              {errors.otp2 && touched.otp2 && (
-                <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
-                  {errors.otp2}
-                </div>
-              )}
-            </div>
-            <div className="relative ">
-              <input
-                type="text"
-                name="otp3"
-                placeholder={errors.otp3 && touched.otp3 ? "" : ""}
-                className={`p-3 border-b-4  border-[#FF0000] rounded-lg focus:outline-none bg-[#faeeee] focus:ring-2 w-16 h-16 text-center text-3xl  focus:ring-red-600 ${
-                  errors.otp3 && touched.otp3 && "border-red-500"
-                }`}
-                value={values.otp3}
-                onBlur={handleBlur}
-                onChange={handleNumbersOnly}
-              />
-              {errors.otp3 && touched.otp3 && (
-                <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
-                  {errors.otp3}
-                </div>
-              )}
-            </div>
-            <div className="relative ">
-              <input
-                type="text"
-                name="otp4"
-                placeholder={errors.otp4 && touched.otp4 ? "" : ""}
-                className={`p-3 border-b-4  border-[#FF0000] rounded-lg focus:outline-none bg-[#faeeee] focus:ring-2 w-16 h-16 text-center text-3xl  focus:ring-red-600 ${
-                  errors.otp4 && touched.otp4 && "border-red-500"
-                }`}
-                value={values.otp4}
-                onBlur={handleBlur}
-                onChange={handleNumbersOnly}
-              />
-              {errors.otp4 && touched.otp4 && (
-                <div className="text-red-500 absolute top-1 left-2 text-xs font-bold">
-                  {errors.otp4}
-                </div>
-              )}
-            </div>
+
+          <div className="flex gap-3 md:gap-5 items-center justify-center">
+            {[0, 1, 2, 3].map((index) => (
+              <div key={index} className="flex flex-col items-center">
+                <input
+                  ref={inputRefs[index]}
+                  type="text"
+                  name={`otp${index + 1}`}
+                  maxLength="1"
+                  inputMode="numeric"
+                  className={`w-14 h-16 md:w-16 md:h-20 text-center text-3xl font-bold bg-[#eef4fa] border-b-4 rounded-xl transition-all outline-none
+                    ${
+                      touched[`otp${index + 1}`] && errors[`otp${index + 1}`]
+                        ? "border-orange-500 shadow-sm"
+                        : "border-[#014376] focus:border-[#31918D] focus:ring-4 focus:ring-[#31918D]/10"
+                    }`}
+                  value={values[`otp${index + 1}`]}
+                  onBlur={handleBlur}
+                  onChange={(e) => {
+                    // Only allow numeric input
+                    if (/^\d?$/.test(e.target.value)) {
+                      handleChange(e);
+                      handleInputLogic(e, index);
+                    }
+                  }}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                />
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col w-40 md:w-48 mx-auto ">
+
+          {/* Error Message Display */}
+          {(touched.otp1 || touched.otp2 || touched.otp3 || touched.otp4) &&
+            !isValid && (
+              <p className="text-center text-orange-600 text-sm font-medium">
+                Please enter a valid 4-digit code
+              </p>
+            )}
+
+          <div className="flex flex-col items-center gap-6 mt-4">
             <button
-              onClick={() => navigate(NEWPASSWORD)}
+              disabled={isLoading || !isFormComplete}
               type="submit"
-              className="py-3 bg-red-600 text-lg text-center text-white font-bold rounded-lg hover:bg-red-700 transition duration-300"
+              style={{
+                backgroundColor: isFormComplete ? "#014376" : "#a1b5c7",
+                cursor: isFormComplete ? "pointer" : "not-allowed",
+              }}
+              className="w-48 py-3 text-lg text-white font-bold rounded-xl shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:shadow-none"
             >
-              Verify
+              {isLoading ? "Verifying..." : "Verify"}
             </button>
-            <div className="flex flex-wrap gap-5 items-center justify-center my-4 ">
-              {/* <img src={ArrowImage} alt="" /> */}
-              <button
-                onClick={() => navigate(SIGNIN)}
-                className="text-center cursor-pointer border-b border-dotted font-semibold"
-              >
-                Resend Code
-              </button>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate(SIGNIN)}
+              className="text-gray-500 hover:text-[#31918D] text-sm font-semibold transition-colors"
+            >
+              Didn't receive code?{" "}
+              <span className="underline decoration-dotted underline-offset-4">
+                Resend
+              </span>
+            </button>
           </div>
         </form>
-        {error && (
-          <div className="error">
-            {error.title}: {error.description}
-          </div>
-        )}
-      </div>
-      <div className="container mx-auto md:mt-24 md:pr-16 lg:mt-20 lg:pr-28 w-[40%] hidden md:block">
-        <div className="mx-auto">
-          {imageValue ? (
-            <img src={ForgetImage2} alt="" />
-          ) : (
-            <img src={ForgetImage} alt="" />
-          )}
-        </div>
       </div>
     </section>
   );

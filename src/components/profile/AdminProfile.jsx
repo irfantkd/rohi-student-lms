@@ -15,20 +15,12 @@
 
 // // Constants
 // const VALIDATION_RULES = {
-//   NAME_MIN_LENGTH: 3,
-//   PHONE_LENGTH: 11,
 //   CNIC_LENGTH: 13,
 //   MAX_IMAGE_SIZE: 1048576, // 1MB
 //   VALID_IMAGE_TYPES: ["image/jpeg", "image/png", "image/svg+xml"],
 // };
 
 // const VALIDATION_MESSAGES = {
-//   ALPHABETS_ONLY: "Only alphabets are allowed",
-//   MIN_ALPHABETS: "Must be at least 3 characters",
-//   PHONE_FORMAT: "Phone must start with '03' and contain 11 digits",
-//   CNIC_FORMAT: "CNIC must be exactly 13 digits",
-//   EMAIL_INVALID: "Please enter a valid email address",
-//   QUALIFICATION_REQUIRED: "Qualification field is required",
 //   IMAGE_TYPE_INVALID: "Please select a valid image file (JPEG, PNG, SVG)",
 //   IMAGE_SIZE_EXCEEDED: "Image size should not exceed 1 MB",
 // };
@@ -38,7 +30,6 @@
 //   const [formState, setFormState] = useState({});
 //   const [initialFormState, setInitialFormState] = useState({});
 //   const [selectedImage, setSelectedImage] = useState(null);
-//   const [errors, setErrors] = useState({});
 //   const [isEditMode, setIsEditMode] = useState(false);
 //   const [passwordModal, setPasswordModal] = useState(false);
 //   const [isUploading, setIsUploading] = useState(false);
@@ -57,7 +48,6 @@
 //   } = useGetQuery({
 //     path: "/user/get-user",
 //   });
-//   console.log("adminProfileData", adminProfileData);
 
 //   // Initialize form data from API
 //   useEffect(() => {
@@ -92,52 +82,6 @@
 //     }
 //   }, [adminProfileData, dispatch]);
 
-//   // Validation Functions
-//   const validateField = (name, value) => {
-//     switch (name) {
-//       case "firstName":
-//       case "lastName":
-//       case "fatherName":
-//         if (!/^[A-Za-z\s]+$/.test(value)) {
-//           return VALIDATION_MESSAGES.ALPHABETS_ONLY;
-//         }
-//         if (value.length < VALIDATION_RULES.NAME_MIN_LENGTH) {
-//           return VALIDATION_MESSAGES.MIN_ALPHABETS;
-//         }
-//         return null;
-
-//       case "email":
-//         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-//         if (!emailRegex.test(value)) {
-//           return VALIDATION_MESSAGES.EMAIL_INVALID;
-//         }
-//         return null;
-
-//       case "contact":
-//       case "father_contact":
-//         if (!/^03\d{9}$/.test(value)) {
-//           return VALIDATION_MESSAGES.PHONE_FORMAT;
-//         }
-//         return null;
-
-//       case "cnic":
-//         const cnicDigits = value.replace(/[^0-9]/g, "");
-//         if (cnicDigits.length !== VALIDATION_RULES.CNIC_LENGTH) {
-//           return VALIDATION_MESSAGES.CNIC_FORMAT;
-//         }
-//         return null;
-
-//       case "qualification":
-//         if (!value || value.trim().length === 0) {
-//           return VALIDATION_MESSAGES.QUALIFICATION_REQUIRED;
-//         }
-//         return null;
-
-//       default:
-//         return null;
-//     }
-//   };
-
 //   // Format CNIC with dashes
 //   const formatCNIC = (value) => {
 //     const digits = value.replace(/[^0-9]/g, "").slice(0, 13);
@@ -155,24 +99,10 @@
 //   const handleChange = (e, field) => {
 //     let value = field.type === "select" ? e.value : e.target.value;
 
-//     // Format CNIC
+//     // Format CNIC automatically
 //     if (field.name === "cnic") {
 //       value = formatCNIC(value);
 //     }
-
-//     // Format phone numbers
-//     if (field.name === "contact" || field.name === "father_contact") {
-//       value = value
-//         .replace(/[^0-9]/g, "")
-//         .slice(0, VALIDATION_RULES.PHONE_LENGTH);
-//     }
-
-//     // Validate field
-//     const errorMessage = validateField(field.name, value);
-//     setErrors((prev) => ({
-//       ...prev,
-//       [field.name]: errorMessage || "",
-//     }));
 
 //     // Update form state
 //     setFormState((prev) => ({
@@ -183,21 +113,6 @@
 
 //   // Handle profile save
 //   const handleSaveEdit = async () => {
-//     // Validate all fields before submission
-//     const newErrors = {};
-//     Object.keys(formState).forEach((key) => {
-//       const error = validateField(key, formState[key]);
-//       if (error) {
-//         newErrors[key] = error;
-//       }
-//     });
-
-//     if (Object.keys(newErrors).length > 0) {
-//       setErrors(newErrors);
-//       showToast("Please fix all errors before saving", "error");
-//       return;
-//     }
-
 //     try {
 //       const response = await patch({
 //         path: "/admin/update-auth",
@@ -270,7 +185,6 @@
 //   const handleCancelClick = () => {
 //     setFormState(initialFormState);
 //     setIsEditMode(false);
-//     setErrors({});
 //   };
 
 //   // Handle edit image button click
@@ -341,6 +255,12 @@
 //       placeholder: "03XXXXXXXXX",
 //     },
 //     {
+//       label: "Address",
+//       name: "address",
+//       type: "text",
+//       placeholder: "Enter address",
+//     },
+//     {
 //       label: "Marital Status",
 //       name: "marital_status",
 //       type: "select",
@@ -367,7 +287,7 @@
 //       backgroundColor: state.isSelected ? "#FF0000" : provided.backgroundColor,
 //       color: state.isSelected ? "white" : provided.color,
 //       "&:hover": {
-//         backgroundColor: state.isSelected ? "#FF0000" : "#24A0ED",
+//         backgroundColor: state.isSelected ? "" : "#24A0ED",
 //         color: "white",
 //       },
 //     }),
@@ -385,7 +305,7 @@
 //     }),
 //     placeholder: (provided) => ({
 //       ...provided,
-//       color: "#9CA3AF",
+//       color: "black",
 //     }),
 //     container: (provided) => ({
 //       ...provided,
@@ -393,7 +313,7 @@
 //     }),
 //     singleValue: (provided) => ({
 //       ...provided,
-//       color: "#4B5563",
+//       color: "#4b5563",
 //     }),
 //   };
 
@@ -406,34 +326,36 @@
 //         setIsEditMode={setIsEditMode}
 //       />
 
-//       <div className="bg-white w-full rounded-lg shadow-sm">
+//       <div className="bg-white w-full">
 //         {/* Profile Header Section */}
-//         <div className="flex gap-10 pl-24 pt-6 pb-6 items-center border-b border-gray-200">
+//         <div className="flex gap-10 pl-[6.2rem] pt-6 items-center">
 //           <div className="relative">
 //             {adminProfileLoading || isUploading ? (
-//               <div className="rounded-full h-44 w-44 border-2 border-gray-300 flex items-center justify-center">
-//                 <div className="h-10 w-10 border-4 border-x-gray-400 rounded-full animate-spin"></div>
+//               <div className="rounded-full h-44 w-44 border border-gray flex items-center justify-center">
+//                 <div className="h-10 w-10 border-4 border-x-grayCheckbox rounded-full animate-spin duration-1000"></div>
 //               </div>
 //             ) : (
-//               <img
-//                 src={selectedImage || ProfilePhoto}
-//                 alt="Profile"
-//                 className="rounded-full h-44 w-44 object-cover border-2 border-gray-200"
-//               />
+//               <div className="rounded-full h-44 w-44 border-2 border-grayText">
+//                 <img
+//                   src={selectedImage || ProfilePhoto}
+//                   alt="Profile"
+//                   className="object-cover w-full h-full rounded-full"
+//                 />
+//               </div>
 //             )}
 //           </div>
 
-//           <div className="space-y-3">
-//             <h2 className="font-bold text-2xl text-gray-800">
+//           <div className="space-y-4">
+//             <p className="font-bold text-2xl">
 //               {formState.firstName && formState.lastName
 //                 ? `${formState.firstName} ${formState.lastName}`
 //                 : "Loading..."}
-//             </h2>
-//             <p className="font-light text-gray-600">Administrator</p>
+//             </p>
+//             {/* <p className="font-light">Administrator</p> */}
 //             <button
 //               onClick={handleEditImageClick}
 //               disabled={isUploading}
-//               className="bg-slate-100 text-sm font-poppins font-semibold py-2 px-6 flex items-center gap-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+//               className="bg-slate-100 text-sm font-poppins font-semibold py-2 px-4 flex items-center gap-2 rounded-md transform transition-transform duration-300 ease-in-out hover:scale-105 hover:text-base disabled:opacity-50 disabled:cursor-not-allowed"
 //             >
 //               {isUploading ? "Uploading..." : "Edit Image"}
 //             </button>
@@ -448,58 +370,48 @@
 //         </div>
 
 //         {/* Form Fields Section */}
-//         <div className="p-6 grid lg:grid-cols-2 grid-cols-1 gap-6 lg:place-items-center">
+//         <div className="p-6 grid lg:grid-cols-2 grid-cols-1 lg:place-items-center lg:place-content-center place-items-start">
 //           {formStructure.map((field) => (
-//             <div key={field.name} className="mb-4 relative w-full max-w-md">
-//               <label className="flex flex-col text-gray-700 text-sm font-bold mb-2 capitalize">
+//             <div key={field.name} className="mb-4 relative capitalize">
+//               <label className="flex flex-col text-gray-700 text-sm font-bold mb-2">
 //                 {field.label}
 //               </label>
 
 //               {field.type === "select" ? (
 //                 <Select
 //                   styles={customSelectStyles}
+//                   placeholder={field.value}
 //                   value={
 //                     field.options?.find(
 //                       (opt) => opt.value === formState[field.name]
 //                     ) || null
 //                   }
-//                   placeholder={`Select ${field.label.toLowerCase()}`}
 //                   isDisabled={!isEditMode}
 //                   onChange={(e) => handleChange(e, field)}
 //                   options={field.options}
 //                 />
 //               ) : (
-//                 <div className="relative">
+//                 <>
 //                   <input
-//                     type={field.type}
+//                     type={field.type || "text"}
 //                     name={field.name}
 //                     placeholder={field.placeholder}
-//                     className={`border border-gray-300 p-3 w-full rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
-//                       !isEditMode && "bg-gray-100 cursor-not-allowed"
-//                     } ${errors[field.name] && "border-red-500"} ${
-//                       field.hasUpdateButton && "pr-28"
+//                     className={`border border-grayBorder p-2 w-96 rounded-md text-sm ${
+//                       !isEditMode && "bg-gray-200"
 //                     }`}
 //                     value={formState[field.name] || ""}
 //                     onChange={(e) => handleChange(e, field)}
 //                     disabled={!isEditMode || field.disabled}
 //                   />
-
 //                   {field.hasUpdateButton && (
 //                     <button
-//                       type="button"
-//                       className="absolute right-0 top-0 h-full w-24 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-r-md hover:from-red-600 hover:to-red-700 transition-all"
+//                       className="absolute right-0 mt-[1px] w-24 mx-auto text-sm p-2 rounded-r-md custom-Update font-Montserrat text-white font-bold cursor-pointer"
 //                       onClick={() => setPasswordModal(true)}
 //                     >
 //                       Update
 //                     </button>
 //                   )}
-//                 </div>
-//               )}
-
-//               {errors[field.name] && (
-//                 <p className="text-red-500 text-xs mt-1 animate-pulse">
-//                   {errors[field.name]}
-//                 </p>
+//                 </>
 //               )}
 //             </div>
 //           ))}
@@ -507,15 +419,15 @@
 
 //         {/* Action Buttons */}
 //         {isEditMode && (
-//           <div className="flex justify-end gap-3 mb-6 mr-24 pb-6">
+//           <div className="flex justify-end gap-2 mb-6 mr-[6.4rem]">
 //             <button
-//               className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-md hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 min-w-[140px]"
+//               className="p-3 custom-AddButton w-36 text-white rounded-md hover:bg-bloodred"
 //               onClick={handleSaveEdit}
 //             >
-//               Save Changes
+//               Save
 //             </button>
 //             <button
-//               className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-md hover:bg-gray-300 transition-all transform hover:scale-105 min-w-[140px]"
+//               className="p-3 custom-AddButton w-36 text-white rounded-md hover:bg-bloodred"
 //               onClick={handleCancelClick}
 //             >
 //               Cancel
@@ -553,14 +465,8 @@ import imageCompression from "browser-image-compression";
 
 // Constants
 const VALIDATION_RULES = {
-  CNIC_LENGTH: 13,
   MAX_IMAGE_SIZE: 1048576, // 1MB
   VALID_IMAGE_TYPES: ["image/jpeg", "image/png", "image/svg+xml"],
-};
-
-const VALIDATION_MESSAGES = {
-  IMAGE_TYPE_INVALID: "Please select a valid image file (JPEG, PNG, SVG)",
-  IMAGE_SIZE_EXCEEDED: "Image size should not exceed 1 MB",
 };
 
 const AdminProfile = () => {
@@ -571,12 +477,12 @@ const AdminProfile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [passwordModal, setPasswordModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
 
   // API Hooks
-  const [patch] = usePatchMutation();
   const [post] = usePostMutation();
 
   const {
@@ -593,19 +499,19 @@ const AdminProfile = () => {
       const profileData = adminProfileData.data;
       const formData = {
         uuid: profileData.uuid,
-        firstName: profileData.first_name,
-        lastName: profileData.last_name,
-        fatherName: profileData.father_name,
-        dob: profileData.dob,
-        email: profileData.email,
+        firstName: profileData.first_name || "",
+        lastName: profileData.last_name || "",
+        fatherName: profileData.father_name || "",
+        dob: profileData.dob || "",
+        email: profileData.email || "",
         password: "........",
-        contact: profileData.contact,
-        cnic: profileData.cnic,
-        qualification: profileData.qualification,
-        father_contact: profileData.father_contact,
-        address: profileData.address,
-        marital_status: profileData.marital_status,
-        gender: profileData.gender,
+        contact: profileData.contact || "",
+        cnic: profileData.cnic || "",
+        qualification: profileData.qualification || "",
+        father_contact: profileData.father_contact || "",
+        address: profileData.address || "",
+        marital_status: profileData.marital_status || "",
+        gender: profileData.gender || "",
       };
 
       setFormState(formData);
@@ -649,12 +555,53 @@ const AdminProfile = () => {
     }));
   };
 
-  // Handle profile save
+  // Check if form has changes
+  const hasFormChanges = () => {
+    return Object.keys(formState).some(
+      (key) => formState[key] !== initialFormState[key]
+    );
+  };
+
+  // Handle profile save - Only send filled fields
   const handleSaveEdit = async () => {
+    // Check if there are any changes
+    if (!hasFormChanges()) {
+      showToast("No changes detected", "info");
+      setIsEditMode(false);
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-      const response = await patch({
-        path: "/admin/update-auth",
-        body: formState,
+      // Prepare data to send - Only include filled and changed fields
+      const dataToSend = { uuid: formState.uuid };
+
+      Object.keys(formState).forEach((key) => {
+        const value = formState[key];
+        const initialValue = initialFormState[key];
+
+        // Skip password field
+        if (key === "password") return;
+
+        // Only include if:
+        // 1. Value has changed from initial
+        // 2. Value is not empty/null/undefined
+        if (value !== initialValue && value && value.trim() !== "") {
+          dataToSend[key] = value;
+        }
+      });
+
+      // If only uuid in the object, no actual changes to send
+      if (Object.keys(dataToSend).length === 1) {
+        showToast("No valid changes to save", "info");
+        setIsSaving(false);
+        return;
+      }
+
+      const response = await post({
+        path: "/admin/update-auth?_method=patch",
+        body: dataToSend,
       }).unwrap();
 
       if (response.message === "Success." && response.status === 1) {
@@ -662,10 +609,17 @@ const AdminProfile = () => {
         setInitialFormState(formState);
         await refetchAdminProfile();
         showToast("Profile updated successfully", "success");
+      } else {
+        throw new Error(response.message || "Failed to update profile");
       }
     } catch (error) {
       console.error("Failed to update profile:", error);
-      showToast("Failed to update profile. Please try again.", "error");
+      showToast(
+        error?.data?.message || "Failed to update profile. Please try again.",
+        "error"
+      );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -676,17 +630,18 @@ const AdminProfile = () => {
 
     // Validate file type
     if (!VALIDATION_RULES.VALID_IMAGE_TYPES.includes(file.type)) {
-      showToast(VALIDATION_MESSAGES.IMAGE_TYPE_INVALID, "error");
+      showToast("Please select a valid image file (JPEG, PNG, SVG)", "error");
       return;
     }
 
     // Validate file size
     if (file.size > VALIDATION_RULES.MAX_IMAGE_SIZE) {
-      showToast(VALIDATION_MESSAGES.IMAGE_SIZE_EXCEEDED, "error");
+      showToast("Image size should not exceed 1 MB", "error");
       return;
     }
 
     setIsUploading(true);
+    const originalImage = selectedImage;
 
     try {
       // Compress image
@@ -697,13 +652,14 @@ const AdminProfile = () => {
       };
       const compressedFile = await imageCompression(file, options);
 
+      // Create preview
+      setSelectedImage(URL.createObjectURL(compressedFile));
+
       // Upload image
       const formData = new FormData();
       formData.append("avatar", compressedFile);
 
-      setSelectedImage(URL.createObjectURL(file));
-
-      const response = await post({
+      await post({
         path: "/user/upload-avatar?_method=patch",
         body: formData,
       }).unwrap();
@@ -712,10 +668,16 @@ const AdminProfile = () => {
       showToast("Profile image updated successfully", "success");
     } catch (error) {
       console.error("Error uploading image:", error);
-      showToast("Failed to upload image. Please try again.", "error");
-      setSelectedImage(adminProfileData?.data?.avatar?.file_url);
+      showToast(
+        error?.data?.message || "Failed to upload image. Please try again.",
+        "error"
+      );
+      setSelectedImage(originalImage);
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -727,7 +689,7 @@ const AdminProfile = () => {
 
   // Handle edit image button click
   const handleEditImageClick = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
   // Form structure configuration
@@ -822,28 +784,30 @@ const AdminProfile = () => {
   const customSelectStyles = {
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? "#FF0000" : provided.backgroundColor,
+      backgroundColor: state.isSelected ? "#EF4444" : provided.backgroundColor,
       color: state.isSelected ? "white" : provided.color,
       "&:hover": {
-        backgroundColor: state.isSelected ? "" : "#24A0ED",
+        backgroundColor: state.isSelected ? "#EF4444" : "#3B82F6",
         color: "white",
       },
+      cursor: "pointer",
     }),
     control: (provided, state) => ({
       ...provided,
       padding: "0.25rem",
-      backgroundColor: "white",
-      borderColor: state.isFocused ? "#E53E3E" : "#00000026",
-      boxShadow: state.isFocused ? "0 0 0 2px rgba(229, 62, 62, 0.75)" : "none",
+      backgroundColor: isEditMode ? "white" : "#E5E7EB",
+      borderColor: state.isFocused ? "#EF4444" : "#D1D5DB",
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(239, 68, 68, 0.2)" : "none",
       "&:hover": {
-        borderColor: state.isFocused ? "#E53E3E" : "#D1D5DB",
+        borderColor: state.isFocused ? "#EF4444" : "#9CA3AF",
       },
-      borderRadius: "10px",
-      width: "24rem",
+      borderRadius: "0.5rem",
+      minHeight: "2.75rem",
+      cursor: isEditMode ? "pointer" : "not-allowed",
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: "black",
+      color: "#9CA3AF",
     }),
     container: (provided) => ({
       ...provided,
@@ -851,51 +815,106 @@ const AdminProfile = () => {
     }),
     singleValue: (provided) => ({
       ...provided,
-      color: "#4b5563",
+      color: "#374151",
     }),
   };
+
+  // Loading skeleton
+  if (adminProfileLoading && !formState.firstName) {
+    return (
+      <div className="w-11/12 mx-auto font-poppins">
+        <Header
+          title="My Profile"
+          buttontitle="Edit"
+          headerButtonTittle={false}
+          setIsEditMode={setIsEditMode}
+        />
+        <div className="bg-white w-full p-6 flex items-center justify-center min-h-[400px] rounded-lg shadow-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-12 w-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-11/12 mx-auto font-poppins">
       <Header
         title="My Profile"
-        buttontitle="Edit"
+        buttontitle={isEditMode ? "" : "Edit"}
         headerButtonTittle={false}
         setIsEditMode={setIsEditMode}
       />
 
-      <div className="bg-white w-full">
+      <div className="bg-white w-full shadow-md rounded-lg overflow-hidden">
         {/* Profile Header Section */}
-        <div className="flex gap-10 pl-[6.2rem] pt-6 items-center">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10 px-8 md:pl-[6.2rem] pt-8 pb-6 items-center border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div className="relative">
-            {adminProfileLoading || isUploading ? (
-              <div className="rounded-full h-44 w-44 border border-gray flex items-center justify-center">
-                <div className="h-10 w-10 border-4 border-x-grayCheckbox rounded-full animate-spin duration-1000"></div>
+            {isUploading ? (
+              <div className="rounded-full h-44 w-44 border-2 border-gray-300 flex items-center justify-center bg-gray-50 shadow-inner">
+                <div className="h-10 w-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : (
-              <div className="rounded-full h-44 w-44 border-2 border-grayText">
+              <div className="rounded-full h-44 w-44 border-4 border-white shadow-lg overflow-hidden bg-gray-100">
                 <img
                   src={selectedImage || ProfilePhoto}
                   alt="Profile"
-                  className="object-cover w-full h-full rounded-full"
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    e.target.src = ProfilePhoto;
+                  }}
                 />
               </div>
             )}
           </div>
 
-          <div className="space-y-4">
-            <p className="font-bold text-2xl">
+          <div className="space-y-3 text-center md:text-left">
+            <h2 className="font-bold text-3xl text-gray-800">
               {formState.firstName && formState.lastName
                 ? `${formState.firstName} ${formState.lastName}`
-                : "Loading..."}
+                : "Admin User"}
+            </h2>
+            <p className="text-gray-600 font-medium flex items-center gap-2 justify-center md:justify-start">
+              <svg
+                className="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Administrator
             </p>
-            {/* <p className="font-light">Administrator</p> */}
             <button
               onClick={handleEditImageClick}
               disabled={isUploading}
-              className="bg-slate-100 text-sm font-poppins font-semibold py-2 px-4 flex items-center gap-2 rounded-md transform transition-transform duration-300 ease-in-out hover:scale-105 hover:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-semibold py-2.5 px-6 rounded-lg transform transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 mx-auto md:mx-0"
             >
-              {isUploading ? "Uploading..." : "Edit Image"}
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              {isUploading ? "Uploading..." : "Change Photo"}
             </button>
             <input
               type="file"
@@ -908,17 +927,18 @@ const AdminProfile = () => {
         </div>
 
         {/* Form Fields Section */}
-        <div className="p-6 grid lg:grid-cols-2 grid-cols-1 lg:place-items-center lg:place-content-center place-items-start">
+        <div className="p-8 grid lg:grid-cols-2 grid-cols-1 gap-6 lg:place-items-center">
           {formStructure.map((field) => (
-            <div key={field.name} className="mb-4 relative capitalize">
-              <label className="flex flex-col text-gray-700 text-sm font-bold mb-2">
+            <div key={field.name} className="w-full max-w-md">
+              <label className="flex items-center text-gray-700 text-sm font-semibold mb-2 capitalize">
                 {field.label}
               </label>
 
               {field.type === "select" ? (
                 <Select
+                  name={field.name}
                   styles={customSelectStyles}
-                  placeholder={field.value}
+                  placeholder={`Select ${field.label.toLowerCase()}`}
                   value={
                     field.options?.find(
                       (opt) => opt.value === formState[field.name]
@@ -929,27 +949,30 @@ const AdminProfile = () => {
                   options={field.options}
                 />
               ) : (
-                <>
+                <div className="relative">
                   <input
                     type={field.type || "text"}
                     name={field.name}
                     placeholder={field.placeholder}
-                    className={`border border-grayBorder p-2 w-96 rounded-md text-sm ${
-                      !isEditMode && "bg-gray-200"
-                    }`}
+                    className={`border border-gray-300 focus:ring-2 focus:ring-red-200 focus:border-red-500 p-3 w-full rounded-lg text-sm transition-all duration-200 ${
+                      !isEditMode
+                        ? "bg-gray-100 cursor-not-allowed text-gray-600"
+                        : "bg-white text-gray-900"
+                    } ${field.disabled ? "cursor-not-allowed" : ""}`}
                     value={formState[field.name] || ""}
                     onChange={(e) => handleChange(e, field)}
                     disabled={!isEditMode || field.disabled}
                   />
                   {field.hasUpdateButton && (
                     <button
-                      className="absolute right-0 mt-[1px] w-24 mx-auto text-sm p-2 rounded-r-md custom-Update font-Montserrat text-white font-bold cursor-pointer"
+                      className="absolute right-0 top-0 h-full px-5 rounded-r-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-semibold transition-all duration-200 hover:shadow-md"
                       onClick={() => setPasswordModal(true)}
+                      type="button"
                     >
                       Update
                     </button>
                   )}
-                </>
+                </div>
               )}
             </div>
           ))}
@@ -957,16 +980,40 @@ const AdminProfile = () => {
 
         {/* Action Buttons */}
         {isEditMode && (
-          <div className="flex justify-end gap-2 mb-6 mr-[6.4rem]">
+          <div className="flex justify-center md:justify-end gap-3 px-8 pb-8 border-t border-gray-200 pt-6 bg-gray-50">
             <button
-              className="p-3 custom-AddButton w-36 text-white rounded-md hover:bg-bloodred"
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 min-w-[140px] justify-center"
               onClick={handleSaveEdit}
+              disabled={isSaving}
             >
-              Save
+              {isSaving ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  Save Changes
+                </>
+              )}
             </button>
             <button
-              className="p-3 custom-AddButton w-36 text-white rounded-md hover:bg-bloodred"
+              className="px-8 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px]"
               onClick={handleCancelClick}
+              disabled={isSaving}
             >
               Cancel
             </button>

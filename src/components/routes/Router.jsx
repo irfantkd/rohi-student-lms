@@ -65,6 +65,7 @@ import {
   EMPLOYEE_SUMMARY,
   EMPLOYEEID,
   ENROLL_STUDENT,
+  FEEDBACK_FORM,
   FEES,
   FINANCE_SUMMARY,
   FORGET,
@@ -102,6 +103,7 @@ import EmployeesComponent from "../employees/EmployeesComponent";
 import ClassesComponent from "../batches/ClassesComponent";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../features/auth/authSlice";
+import FeedBackForm from "../courses/components/FeedBackForm";
 
 export default function Router() {
   //   const user = useSelector(selectCurrentUser);
@@ -471,6 +473,15 @@ export default function Router() {
           element: (
             <PrivateRoute
               element={<AttendanceMarkSection />}
+              isAuthenticated={useCheckAuthToken}
+            />
+          ),
+        },
+        {
+          path: FEEDBACK_FORM,
+          element: (
+            <PrivateRoute
+              element={<FeedBackForm />}
               isAuthenticated={useCheckAuthToken}
             />
           ),

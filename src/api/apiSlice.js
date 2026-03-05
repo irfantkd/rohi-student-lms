@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const REACT_APP_API_URL = "https://api-rohi.codelab.pk/public/api";
 // const REACT_APP_API_URL = "https://dev-rohi-backend.codelab.pk/public/api";
-// const REACT_APP_API_URL = "http://192.168.1.25:8000/api";
+// const REACT_APP_API_URL = "http://192.168.1.17:8000/api";
 const API_URL = REACT_APP_API_URL;
 
 // Helper function to download blob
@@ -120,13 +120,13 @@ export const apiSlice = createApi({
             const blob = await response.blob();
 
             const contentDisposition = response.headers.get(
-              "content-disposition"
+              "content-disposition",
             );
             let finalFilename = filename || "challan.pdf";
 
             if (contentDisposition) {
               const filenameMatch = contentDisposition.match(
-                /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
               );
               if (filenameMatch && filenameMatch[1]) {
                 finalFilename = filenameMatch[1].replace(/['"]/g, "");
@@ -165,7 +165,7 @@ export const apiSlice = createApi({
         { path, params, filename },
         api,
         extraOptions,
-        baseQuery
+        baseQuery,
       ) => {
         try {
           const state = api.getState();
@@ -178,8 +178,8 @@ export const apiSlice = createApi({
                 .map(
                   (key) =>
                     `${encodeURIComponent(key)}=${encodeURIComponent(
-                      params[key]
-                    )}`
+                      params[key],
+                    )}`,
                 )
                 .join("&")
             : "";
@@ -211,13 +211,13 @@ export const apiSlice = createApi({
             const blob = await response.blob();
 
             const contentDisposition = response.headers.get(
-              "content-disposition"
+              "content-disposition",
             );
             let finalFilename = filename || "challan.pdf";
 
             if (contentDisposition) {
               const filenameMatch = contentDisposition.match(
-                /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
               );
               if (filenameMatch && filenameMatch[1]) {
                 finalFilename = filenameMatch[1].replace(/['"]/g, "");
@@ -311,7 +311,7 @@ export const apiSlice = createApi({
           console.log("Response status:", response.status);
           console.log(
             "Response headers:",
-            Object.fromEntries(response.headers.entries())
+            Object.fromEntries(response.headers.entries()),
           );
 
           if (!response.ok) {

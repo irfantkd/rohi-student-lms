@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CodeLabLogo from "../../../assets/images/SigninImages/logo.png";
-import logo from '../../../assets/images/park logo.png'
+import logo from "../../../assets/images/park logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { usePostMutation } from "../../../api/apiSlice";
@@ -23,9 +23,11 @@ const ForgetComponent = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [forget, { isLoading }] = usePostMutation();
   const [imageValue, setImageValue] = useState(true);
-  const signInValidation = Yup.object({
+
+  const signInValidation = Yup.object().shape({
     email: Yup.string()
-      .email("Invalid email address")
+      .trim()
+      .email("Please enter a valid email address")
       .required("Email is required"),
   });
 
@@ -53,29 +55,22 @@ const ForgetComponent = () => {
     validationSchema: signInValidation,
     validateOnChange: true,
     validateOnBlur: true,
-    onSubmit: (values, { setSubmitting, resetForm }) => {
-      console.log("values", values);
-      setFormSubmitted(true);
-      validateForm().then(async (validationErrors) => {
-        if (Object.keys(validationErrors).length === 0) {
-          try {
-            const res = await forget({
-              path: "/admin/authentication/forget-password",
-              body: values,
-            }).unwrap();
-            console.log("value", values);
-            dispatch(setCredentials({ user: res.data, token: res.meta.token }));
-            navigate(ADMINDASHBOARD);
-          } catch (err) {
-            console.error("Failed to forget:", err);
-          } finally {
-            setSubmitting(false);
-            resetForm();
-          }
-        } else {
-          setSubmitting(false);
-        }
-      });
+    onSubmit: async (values, { setSubmitting, resetForm, setTouched }) => {
+      setTouched({ email: true });
+
+      try {
+        const res = await forget({
+          path: "/admin/authentication/forget-password",
+          body: values,
+        }).unwrap();
+        console.log("res", res);
+
+        navigate(OTP); // OTP screen is correct for forget password
+      } catch (err) {
+        console.error("Failed to forget:", err);
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
@@ -99,24 +94,25 @@ const ForgetComponent = () => {
               <input
                 type="email"
                 name="email"
-                placeholder={errors.email && touched.email ? "" : "E-Mail*"}
+                placeholder="E-Mail*"
                 className={`p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 w-full ${
-                  errors.email && touched.email && "border-red-500"
+                  errors.email && touched.email ? "border-red-500" : ""
                 }`}
                 value={values.email}
                 onBlur={handleBlur}
                 onChange={handleChange}
               />
+
               {errors.email && touched.email && (
-                <div className="absolute text-xs font-bold text-red-500 top-1 left-2">
+                <p className="text-xs font-semibold text-red-500 mt-1">
                   {errors.email}
-                </div>
+                </p>
               )}
             </div>
           </div>
           <div className="flex flex-col md:w-[40%] mx-auto ">
             <button
-              onClick={() => navigate(OTP)}
+              // onClick={() => navigate(OTP)}
               type="submit"
               className="py-3 text-lg font-bold text-center text-white transition duration-300 rounded-lg bg-brown hover:bg-lightbrown"
             >
@@ -144,7 +140,7 @@ const ForgetComponent = () => {
           {imageValue ? (
             <img src={ForgetImage2} alt="" />
           ) : (
-            <img src={ForgetImage} alt=""  className="animate-pulse"/>
+            <img src={ForgetImage} alt="" className="animate-pulse" />
           )}
         </div>
       </div>
